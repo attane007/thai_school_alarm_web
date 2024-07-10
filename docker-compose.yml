@@ -1,31 +1,44 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:latest
-    command: redis-server --requirepass school_alarm
-    container_name: redis
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq
     ports:
-      - "6379:6379"
+      - "5672:5672"  # AMQP port
+      - "15672:15672"  # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: school_alarm
 
-  celery:
-    build:
-      context: .
-    container_name: celery
-    command: celery -A thai_school_alarm_web worker -l info --autoscale 10,3
-    volumes:
-      - .:/app
-    depends_on:
-      - redis
+  # celery:
+  #   build:
+  #     context: .
+  #   container_name: celery
+  #   command: celery -A thai_school_alarm_web worker -l info --autoscale 10,3
+  #   volumes:
+  #     - .:/app
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     - PULSE_SERVER=unix:/run/user/1000/pulse/native  # Example for PulseAudio server, adjust as needed
+  #   devices:
+  #     - /dev/snd:/dev/snd  # Pass through sound devices
+
   
-  celerybeat:
-    build:
-      context: .
-    container_name: celerybeat
-    command: celery -A thai_school_alarm_web beat -l info
-    volumes:
-      - .:/app
-    depends_on:
-      - redis
+  # celerybeat:
+  #   build:
+  #     context: .
+  #   container_name: celerybeat
+  #   command: celery -A thai_school_alarm_web beat -l info
+  #   volumes:
+  #     - .:/app
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     - PULSE_SERVER=unix:/run/user/1000/pulse/native  # Example for PulseAudio server, adjust as needed
+  #   devices:
+  #     - /dev/snd:/dev/snd  # Pass through sound devices
+
 
   

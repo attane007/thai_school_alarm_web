@@ -134,8 +134,8 @@ INTERNAL_IPS = [
 NPM_BIN_PATH='npm.cmd'
 
 # Celery settings
-CELERY_BROKER_URL = 'redis://:school_alarm@redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://:school_alarm@redis:6379/0'
+CELERY_BROKER_URL = 'amqp://user:school_alarm@172.0.0.1:5672/'
+CELERY_RESULT_BACKEND = 'amqp://user:school_alarm@172.0.0.1:5672/'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
