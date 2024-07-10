@@ -3,3 +3,4 @@ thai_school_alarm_web/__pycache__/
 theme/__pycache__/
 data/__pycache__/
 data/migrations/
+celerybeat-schedule

@@ -132,3 +132,11 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 NPM_BIN_PATH='npm.cmd'
+
+# Celery settings
+CELERY_BROKER_URL = 'redis://:school_alarm@redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://:school_alarm@redis:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'

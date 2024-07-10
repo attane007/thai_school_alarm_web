@@ -3,8 +3,29 @@ version: '3.8'
 services:
   redis:
     image: redis:latest
+    command: redis-server --requirepass school_alarm
     container_name: redis
     ports:
       - "6379:6379"
-    environment:
-      - REDIS_PASSWORD=school_alarm
+
+  celery:
+    build:
+      context: .
+    container_name: celery
+    command: celery -A thai_school_alarm_web worker -l info --autoscale 10,3
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+  
+  celerybeat:
+    build:
+      context: .
+    container_name: celerybeat
+    command: celery -A thai_school_alarm_web beat -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  

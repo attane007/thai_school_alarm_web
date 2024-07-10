@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import connection
+import pygame
 import os
 
 def check_initial(view_func):
@@ -56,6 +57,16 @@ def check_initial(view_func):
 @check_initial
 def index(request):
     # Add any necessary logic here
+    pygame.mixer.init()
+    # sound_paths=['audio/bell/sound1/First.wav','audio/bell/sound2/First.wav','audio/bell/sound3/First.wav']
+    # try:
+    #     for path in sound_paths:
+    #         sound = pygame.mixer.Sound(path)
+    #         sound.play()
+    #         pygame.time.wait(int(sound.get_length() * 1000))  # wait for sound to finish playing
+    # finally:
+    #     pygame.mixer.quit()
+
     context = {
         'message': 'Hello, World!'  # Example context data
     }
