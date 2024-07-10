@@ -30,12 +30,21 @@ def check_initial(view_func):
 
         if not table_exists:
             # Run makemigrations and migrate again if the table doesn't exist
+            cursor = connection.cursor()
             try:
                 call_command('makemigrations', 'data')
-                call_command('migrate')
+                call_command('migrate')                
+                cursor.execute('''
+                    INSERT INTO data_bell (name,first,last,status)
+                    VALUES ('เสียงเตือนที่ 1', 'audio/bell/sound1/First.wav','audio/bell/sound1/Last.wav',0),
+                           ('เสียงเตือนที่ 2', 'audio/bell/sound2/First.wav','audio/bell/sound2/Last.wav',0),
+                           ('เสียงเตือนที่ 3', 'audio/bell/sound3/First.wav','audio/bell/sound3/Last.wav',1)
+                ''')
             except CommandError as e:
                 # Handle any errors that may occur during migrations
                 return render(request, 'error.html', {'error_message': str(e)})
+            finally:
+                cursor.close()
         
         # Call the original view function
         return view_func(request, *args, **kwargs)
@@ -51,6 +60,3 @@ def index(request):
         'message': 'Hello, World!'  # Example context data
     }
     return render(request, 'base.html', context)
-
-def setup(request):
-    print("set up")
