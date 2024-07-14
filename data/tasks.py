@@ -1,9 +1,17 @@
 from thai_school_alarm_web.celery import app
 from celery.utils.log import get_task_logger
 import pygame
+import logging
 
 logger = get_task_logger(__name__)
 
+# Set up logging with date and time
+logging.basicConfig(
+    level=logging.INFO,
+    filename='play_sound.log',
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 @app.task
 def play_sound():
@@ -14,14 +22,15 @@ def play_sound():
             sound = pygame.mixer.Sound(path)
             sound.play()
             pygame.time.wait(int(sound.get_length() * 1000))  # wait for sound to finish playing
+        logging.info("Successfully played all sounds.")
     except Exception as e:
-        pass
+        logging.error(f"An error occurred: {e}")
     finally:
         pygame.mixer.quit()
 
 app.conf.beat_schedule = {
     'run_schedule':{
         'task':'data.tasks.play_sound',
-        'schedule': 60.0,
+        'schedule': 30.0,
     }
 }
