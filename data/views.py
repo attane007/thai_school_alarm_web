@@ -56,18 +56,7 @@ def check_initial(view_func):
 # Create your views here.
 @check_initial
 def index(request):
-    # Add any necessary logic here
-    pygame.mixer.init()
-    # sound_paths=['audio/bell/sound1/First.wav','audio/bell/sound2/First.wav','audio/bell/sound3/First.wav']
-    # try:
-    #     for path in sound_paths:
-    #         sound = pygame.mixer.Sound(path)
-    #         sound.play()
-    #         pygame.time.wait(int(sound.get_length() * 1000))  # wait for sound to finish playing
-    # finally:
-    #     pygame.mixer.quit()
-
     context = {
         'message': 'Hello, World!'  # Example context data
     }
-    return render(request, 'base.html', context)
+    return render(request, 'main.html', context)
