@@ -5,3 +5,4 @@ data/__pycache__/
 data/migrations/
 celerybeat-schedule
 alarm/
+play_sound.log
