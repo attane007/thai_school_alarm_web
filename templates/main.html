@@ -96,6 +96,24 @@
                       </div>
                       <div class="row mb-3">
                         <label for="alarmDay" class="col-sm-2 col-form-label"
+                          >เสียงบอกเวลา</label
+                        >
+                        <div class="col-sm-10">
+                          <div class="form-check form-check-inline">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              name="day"
+                              id="monday"
+                              value="Mon"
+                            />
+                            <label class="form-check-label" for="monday"
+                              >จันทร์</label
+                            >
+                        </div>
+                      </div>
+                      <div class="row mb-3">
+                        <label for="alarmDay" class="col-sm-2 col-form-label"
                           >วันแจ้งเตือน</label
                         >
                         <div class="col-sm-10">
@@ -187,16 +205,26 @@
                       </div>
                       <div class="row mb-3">
                         <label
-                          for="inputPassword3"
+                          for="inputSound"
                           class="col-sm-2 col-form-label"
-                          >Password</label
+                          >เสียงเตือน</label
                         >
                         <div class="col-sm-10">
-                          <input
-                            type="password"
+                          <select
+                            name="sound"
                             class="form-control"
-                            id="inputPassword"
-                          />
+                            id="inputSound"
+                            required
+                          >
+                            <option value="" disabled selected>
+                              กรุณาเลือกเสียงเตือน
+                            </option>
+                            {% for audio in audios %}
+                            <option value="{{ audio.id }}">
+                              {{ audio.name }}
+                            </option>
+                            {% endfor %}
+                          </select>
                         </div>
                       </div>
                       <fieldset class="row mb-3">
