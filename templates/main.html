@@ -1,4 +1,13 @@
 {% extends "base.html" %} {% block main %}
+<style>
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+</style>
 <main id="main" class="main">
   <div class="pagetitle">
     <h1>Data Tables</h1>
@@ -21,17 +30,17 @@
             <!-- Basic Modal -->
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn btn-primary mb-3"
               data-bs-toggle="modal"
               data-bs-target="#basicModal"
             >
-            <i class="bi bi-plus-circle-fill"></i>  เพิ่มการแจ้งเตือน
+              <i class="bi bi-plus-circle-fill"></i> เพิ่มการแจ้งเตือน
             </button>
             <div class="modal fade" id="basicModal" tabindex="-1">
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h5 class="modal-title">Basic Modal</h5>
+                    <h5 class="modal-title">เพิ่มการแจ้งเตือน</h5>
                     <button
                       type="button"
                       class="btn-close"
@@ -40,11 +49,225 @@
                     ></button>
                   </div>
                   <div class="modal-body">
-                    Non omnis incidunt qui sed occaecati magni asperiores est
-                    mollitia. Soluta at et reprehenderit. Placeat autem numquam
-                    et fuga numquam. Tempora in facere consequatur sit dolor
-                    ipsum. Consequatur nemo amet incidunt est facilis. Dolorem
-                    neque recusandae quo sit molestias sint dignissimos.
+                    <!-- Horizontal Form -->
+                    <form>
+                      <div class="row mb-3">
+                        <label for="inputTime" class="col-sm-2 col-form-label"
+                          >เวลา</label
+                        >
+                        <div class="col-sm-4">
+                          <select
+                            name="้hour"
+                            class="form-control"
+                            id="inputTime"
+                            required
+                          >
+                            <option value="" disabled selected>ชั่วโมง</option>
+                            <!-- Generate options dynamically from 1 to 24 -->
+                            <script>
+                              for (let i = 1; i <= 24; i++) {
+                                document.write(
+                                  `<option value="${i}">${i}</option>`
+                                );
+                              }
+                            </script>
+                          </select>
+                        </div>
+                        <div class="col-sm-4">
+                          <select
+                            name="minute"
+                            class="form-control"
+                            id="inputMinute"
+                            required
+                          >
+                            <option value="" disabled selected>นาที</option>
+                            <!-- Generate options dynamically from 0 to 59 -->
+                            <script>
+                              for (let i = 0; i < 60; i++) {
+                                document.write(
+                                  `<option value="${i}">${
+                                    i < 10 ? "0" + i : i
+                                  }</option>`
+                                );
+                              }
+                            </script>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="row mb-3">
+                        <label for="alarmDay" class="col-sm-2 col-form-label"
+                          >วันแจ้งเตือน</label
+                        >
+                        <div class="col-sm-10">
+                          <div class="form-check form-check-inline">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              name="day"
+                              id="monday"
+                              value="Mon"
+                            />
+                            <label class="form-check-label" for="monday"
+                              >จันทร์</label
+                            >
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              name="day"
+                              id="tuesday"
+                              value="Tue"
+                            />
+                            <label class="form-check-label" for="tuesday"
+                              >อังคาร</label
+                            >
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              name="day"
+                              id="wednesday"
+                              value="Wed"
+                            />
+                            <label class="form-check-label" for="wednesday"
+                              >พุธ</label
+                            >
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              name="day"
+                              id="thursday"
+                              value="Thu"
+                            />
+                            <label class="form-check-label" for="thursday"
+                              >พฤหัสบดี</label
+                            >
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              name="day"
+                              id="friday"
+                              value="Fri"
+                            />
+                            <label class="form-check-label" for="friday"
+                              >ศุกร์</label
+                            >
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              name="day"
+                              id="saturday"
+                              value="Sat"
+                            />
+                            <label class="form-check-label" for="saturday"
+                              >เสาร์</label
+                            >
+                          </div>
+                          <div class="form-check form-check-inline">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              name="day"
+                              id="sunday"
+                              value="Sun"
+                            />
+                            <label class="form-check-label" for="sunday"
+                              >อาทิตย์</label
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row mb-3">
+                        <label
+                          for="inputPassword3"
+                          class="col-sm-2 col-form-label"
+                          >Password</label
+                        >
+                        <div class="col-sm-10">
+                          <input
+                            type="password"
+                            class="form-control"
+                            id="inputPassword"
+                          />
+                        </div>
+                      </div>
+                      <fieldset class="row mb-3">
+                        <legend class="col-form-label col-sm-2 pt-0">
+                          Radios
+                        </legend>
+                        <div class="col-sm-10">
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="radio"
+                              name="gridRadios"
+                              id="gridRadios1"
+                              value="option1"
+                              checked=""
+                            />
+                            <label class="form-check-label" for="gridRadios1">
+                              First radio
+                            </label>
+                          </div>
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="radio"
+                              name="gridRadios"
+                              id="gridRadios2"
+                              value="option2"
+                            />
+                            <label class="form-check-label" for="gridRadios2">
+                              Second radio
+                            </label>
+                          </div>
+                          <div class="form-check disabled">
+                            <input
+                              class="form-check-input"
+                              type="radio"
+                              name="gridRadios"
+                              id="gridRadios3"
+                              value="option3"
+                              disabled=""
+                            />
+                            <label class="form-check-label" for="gridRadios3">
+                              Third disabled radio
+                            </label>
+                          </div>
+                        </div>
+                      </fieldset>
+                      <div class="row mb-3">
+                        <div class="col-sm-10 offset-sm-2">
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              id="gridCheck1"
+                            />
+                            <label class="form-check-label" for="gridCheck1">
+                              Example checkbox
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="text-center">
+                        <button type="submit" class="btn btn-primary">
+                          Submit
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                          Reset
+                        </button>
+                      </div>
+                    </form>
+                    <!-- End Horizontal Form -->
                   </div>
                   <div class="modal-footer">
                     <button
