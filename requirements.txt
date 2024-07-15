@@ -14,8 +14,6 @@ click-repl==0.3.0
 colorama==0.4.6
 cookiecutter==2.6.0
 Django==5.0.7
-django-browser-reload==1.13.0
-django-tailwind==3.8.0
 idna==3.7
 Jinja2==3.1.4
 kombu==5.3.7
