@@ -8,7 +8,7 @@ def insert_initial_data(apps, schema_editor):
     Bell = apps.get_model('data', 'Bell')
 
     # Insert initial data for Day model
-    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์']
     for day in days:
         Day.objects.get_or_create(name=day)
 
