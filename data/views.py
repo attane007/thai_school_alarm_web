@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import connection
-import pygame
 import os
 
 def check_initial(view_func):

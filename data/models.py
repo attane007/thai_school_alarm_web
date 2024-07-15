@@ -1,13 +1,19 @@
 from django.db import models
 
 # Create your models here.
+class Day(models.Model):
+    name = models.CharField(max_length=100)  # Store the name of the day
+    def __str__(self):
+        return self.name
+    
 class Schedule(models.Model):
-    time = models.TimeField(null=True, blank=True)
-    sound = models.TextField(null=True, blank=True)
-    sound_eng = models.TextField(null=True, blank=True)
-    status = models.BooleanField(default=False)
-    tell_time = models.BooleanField(default=False)
-
+    notification_days = models.ManyToManyField(Day, blank=True)  # วันแจ้งเตือน
+    time = models.TimeField(null=True, blank=True)  # เวลาแจ้งเตือน
+    sound = models.TextField(null=True, blank=True)  # เสียงแจ้งเตือน
+    bell_sound = models.TextField(null=True, blank=True)  # เสียงระฆัง
+    status = models.BooleanField(default=False)  # Status field
+    tell_time = models.BooleanField(default=False)  # การบอกเวลา
+    sound_eng = models.TextField(null=True, blank=True)  # เสียงแจ้งเตือนภาษาอังกฤษ
     def __str__(self):
         return f"Schedule {self.id}"
     

@@ -2,7 +2,7 @@ db.sqlite3
 thai_school_alarm_web/__pycache__/
 theme/__pycache__/
 data/__pycache__/
-data/migrations/
 celerybeat-schedule
 alarm/
 play_sound.log
+data/migrations/__pycache__/
