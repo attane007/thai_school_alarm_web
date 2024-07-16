@@ -13,7 +13,6 @@ def index(request):
     days = Day.objects.all()
     bells = Bell.objects.all()
     schedules = Schedule.objects.order_by('time')
-    check_schedule()
 
     context = {
         'audios': audios,

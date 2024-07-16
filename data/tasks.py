@@ -74,7 +74,7 @@ def play_sound(sound_paths=[]):
 
 app.conf.beat_schedule = {
     'run_schedule':{
-        'task':'data.tasks.play_sound',
+        'task':'data.tasks.check_schedule',
         'schedule': 60.0,
     }
 }
