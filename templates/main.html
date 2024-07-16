@@ -50,14 +50,15 @@
                   </div>
                   <div class="modal-body">
                     <!-- Horizontal Form -->
-                    <form>
+                    <form id="schoolAlarm">
+                      {% csrf_token %}
                       <div class="row mb-3">
                         <label for="inputTime" class="col-sm-2 col-form-label"
                           >เวลา</label
                         >
                         <div class="col-sm-4">
                           <select
-                            name="้hour"
+                            name="hour"
                             class="form-control"
                             id="inputTime"
                             required
@@ -67,7 +68,9 @@
                             <script>
                               for (let i = 1; i <= 24; i++) {
                                 document.write(
-                                  `<option value="${i}">${i}</option>`
+                                  `<option value="${i}">${
+                                    i < 10 ? "0" + i : i
+                                  }</option>`
                                 );
                               }
                             </script>
@@ -106,6 +109,7 @@
                               name="tellTime"
                               id="tellTime"
                               value="1"
+                              checked
                             />
                             <label class="form-check-label" for="tellTime"
                               >ใช่</label
@@ -118,90 +122,19 @@
                           >วันแจ้งเตือน</label
                         >
                         <div class="col-sm-10">
+                          {% for day in days %}
                           <div class="form-check form-check-inline">
                             <input
                               class="form-check-input"
                               type="checkbox"
                               name="day"
-                              id="monday"
-                              value="Mon"
+                              value="{{ day.id }}"
                             />
-                            <label class="form-check-label" for="monday"
-                              >จันทร์</label
+                            <label class="form-check-label" for="{{ day.name }}"
+                              >{{ day.name }}</label
                             >
                           </div>
-                          <div class="form-check form-check-inline">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              name="day"
-                              id="tuesday"
-                              value="Tue"
-                            />
-                            <label class="form-check-label" for="tuesday"
-                              >อังคาร</label
-                            >
-                          </div>
-                          <div class="form-check form-check-inline">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              name="day"
-                              id="wednesday"
-                              value="Wed"
-                            />
-                            <label class="form-check-label" for="wednesday"
-                              >พุธ</label
-                            >
-                          </div>
-                          <div class="form-check form-check-inline">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              name="day"
-                              id="thursday"
-                              value="Thu"
-                            />
-                            <label class="form-check-label" for="thursday"
-                              >พฤหัสบดี</label
-                            >
-                          </div>
-                          <div class="form-check form-check-inline">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              name="day"
-                              id="friday"
-                              value="Fri"
-                            />
-                            <label class="form-check-label" for="friday"
-                              >ศุกร์</label
-                            >
-                          </div>
-                          <div class="form-check form-check-inline">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              name="day"
-                              id="saturday"
-                              value="Sat"
-                            />
-                            <label class="form-check-label" for="saturday"
-                              >เสาร์</label
-                            >
-                          </div>
-                          <div class="form-check form-check-inline">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              name="day"
-                              id="sunday"
-                              value="Sun"
-                            />
-                            <label class="form-check-label" for="sunday"
-                              >อาทิตย์</label
-                            >
-                          </div>
+                          {% endfor %}
                         </div>
                       </div>
                       <div class="row mb-3">
@@ -226,65 +159,37 @@
                           </select>
                         </div>
                       </div>
-                      <fieldset class="row mb-3">
-                        <legend class="col-form-label col-sm-2 pt-0">
-                          Radios
-                        </legend>
-                        <div class="col-sm-10">
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="radio"
-                              name="gridRadios"
-                              id="gridRadios1"
-                              value="option1"
-                              checked=""
-                            />
-                            <label class="form-check-label" for="gridRadios1">
-                              First radio
-                            </label>
-                          </div>
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="radio"
-                              name="gridRadios"
-                              id="gridRadios2"
-                              value="option2"
-                            />
-                            <label class="form-check-label" for="gridRadios2">
-                              Second radio
-                            </label>
-                          </div>
-                          <div class="form-check disabled">
-                            <input
-                              class="form-check-input"
-                              type="radio"
-                              name="gridRadios"
-                              id="gridRadios3"
-                              value="option3"
-                              disabled=""
-                            />
-                            <label class="form-check-label" for="gridRadios3">
-                              Third disabled radio
-                            </label>
-                          </div>
-                        </div>
-                      </fieldset>
+                      <!-- your_template.html -->
+
                       <div class="row mb-3">
-                        <div class="col-sm-10 offset-sm-2">
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="gridCheck1"
-                            />
-                            <label class="form-check-label" for="gridCheck1">
-                              Example checkbox
-                            </label>
-                          </div>
+                        <label
+                          for="inputBellSound"
+                          class="col-sm-2 col-form-label"
+                          >เสียงระฆัง</label
+                        >
+                        <div class="col-sm-10">
+                          <select
+                            name="bellSound"
+                            class="form-control"
+                            id="inputBellSound"
+                            required
+                          >
+                            <option value="" disabled selected>
+                              กรุณาเลือกเสียงระฆัง
+                            </option>
+                            {% for bell in bells %} {% if bell.status == 1 %}
+                            <option value="{{ bell.id }}" selected>
+                              {{ bell.name }}
+                            </option>
+                            {% else %}
+                            <option value="{{ bell.id }}">
+                              {{ bell.name }}
+                            </option>
+                            {% endif %} {% endfor %}
+                          </select>
                         </div>
                       </div>
+
                       <div class="text-center">
                         <button type="submit" class="btn btn-primary">
                           Submit
@@ -295,18 +200,6 @@
                       </div>
                     </form>
                     <!-- End Horizontal Form -->
-                  </div>
-                  <div class="modal-footer">
-                    <button
-                      type="button"
-                      class="btn btn-secondary"
-                      data-bs-dismiss="modal"
-                    >
-                      Close
-                    </button>
-                    <button type="button" class="btn btn-primary">
-                      Save changes
-                    </button>
                   </div>
                 </div>
               </div>
@@ -322,16 +215,32 @@
                   <th>เสียงแจ้งเตือน</th>
                   <th>เสียงระฆัง</th>
                   <th>การบอกเวลา</th>
+                  <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
+                {% for schedule in schedules %}
                 <tr>
-                  <td>Unity Pugh</td>
-                  <td>9958</td>
-                  <td>Curicó</td>
-                  <td>2005/02/11</td>
-                  <td>37%</td>
+                  <td>{{ forloop.counter }}</td>
+                  <td>
+                    {% for day in schedule.notification_days.all %} 
+                    {{ day.name }}{% if not forloop.last %}, {% endif %} {% endfor %}
+                  </td>
+                  <td>{{ schedule.time|date:"H:i" }}</td>
+                  <td>{{ schedule.sound }}</td>
+                  <td>{{ schedule.bell_sound }}</td>
+                  <td>
+                    {% if schedule.tell_time %}
+                    <i class="bx bxs-check-circle"></i>
+                    {% else %}
+                    <i class="bx bxs-x-circle"></i>
+                    {% endif %} {{ schedule.tell_time }}
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-danger" title="ลบ" onclick="return removeSchedule({{schedule.id}})"><i class='bx bxs-trash'></i></button>
+                  </td>
                 </tr>
+                {% endfor %}
               </tbody>
             </table>
             <!-- End Table with stripped rows -->
@@ -342,5 +251,36 @@
   </section>
 </main>
 <!-- End #main -->
+
+<script>
+  // Function to handle form submission
+  function submitForm(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    // Collect form data
+    const formData = new FormData(document.getElementById("schoolAlarm"));
+
+    // Fetch options
+    const fetchOptions = {
+      method: "POST", // or 'PUT'
+      body: formData,
+    };
+
+    // Send fetch request
+    fetch("/save_form", fetchOptions)
+      .then((response) => response.json())
+      .then((data) => {
+        // Handle response if needed
+        console.log("Form submitted successfully:", data);
+        location.reload();
+      })
+      .catch((error) => {
+        console.error("Error submitting form:", error);
+      });
+  }
+
+  // Add event listener to form submission
+  document.getElementById("schoolAlarm").addEventListener("submit", submitForm);
+</script>
 
 {% endblock main %}

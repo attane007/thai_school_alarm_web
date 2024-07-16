@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 # Create your models here.
 class Audio(models.Model):
@@ -9,7 +11,8 @@ class Audio(models.Model):
         return self.name
 
 class Day(models.Model):
-    name = models.CharField(max_length=100)  # Store the name of the day
+    name = models.CharField(max_length=100)
+    name_eng = models.CharField(max_length=100,null=True)
     def __str__(self):
         return self.name
     
@@ -37,3 +40,8 @@ class Utility(models.Model):
 
     def __str__(self):
         return self.name
+
+# Signal receiver to remove related Day instances when Schedule is deleted
+@receiver(pre_delete, sender=Schedule)
+def delete_notification_days(sender, instance, **kwargs):
+    instance.notification_days.clear()
