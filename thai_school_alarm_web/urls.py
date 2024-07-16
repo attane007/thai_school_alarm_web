@@ -22,7 +22,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", views.index),
-    path("save_form",views.save_form)
+    path("save_form",views.save_form),
+    path('delete_schedule/<int:schedule_id>/', views.delete_schedule)
 ]
 
 if settings.DEBUG:

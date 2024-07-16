@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from data.models import Audio, Day, Bell, Schedule
 from datetime import datetime
 from data.tasks import play_sound,check_schedule
@@ -62,3 +63,9 @@ def save_form(request):
 
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
+    
+@require_http_methods(["DELETE"])
+def delete_schedule(request, schedule_id):
+    schedule = get_object_or_404(Schedule, pk=schedule_id)
+    schedule.delete()
+    return JsonResponse({'message': 'Schedule deleted successfully.'})
