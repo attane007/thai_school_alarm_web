@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = ')&sed4twl6k+va!bjz7vi3g3a37!iip$=ltzl)vj)7)v_36!ly'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -120,9 +120,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR,'static')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'data/static'),
-]
 
 # Celery settings
 CELERY_BROKER_URL = 'amqp://user:school_alarm@localhost:5672//'
