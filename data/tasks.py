@@ -6,6 +6,7 @@ from data.time_sound import tell_hour,tell_minute
 from celery.utils.log import get_task_logger
 import pygame
 import logging
+from celery.schedules import crontab
 
 logger = get_task_logger(__name__)
 
@@ -75,6 +76,6 @@ def play_sound(sound_paths=[]):
 app.conf.beat_schedule = {
     'run_schedule':{
         'task':'data.tasks.check_schedule',
-        'schedule': 60.0,
+        'schedule': crontab(minute='*')
     }
 }
