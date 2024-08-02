@@ -9,6 +9,7 @@ import os
 import shutil
 import json
 import time
+import math
 
 # Create your views here.
 
@@ -87,24 +88,27 @@ def text_to_speech(request):
     text = input_text
     data = {'input_text':text,'speaker': 1, 'phrase_break':0, 'audiovisual':0}
     response = requests.post(url, json=data, headers=headers)
-    print(response.json().get('wav_url'))
+    durations=response.json().get('durations')
+    rounded_duration = math.ceil(durations)
+    rounded_duration=rounded_duration+10
     
-    time.sleep(3)
+    time.sleep(1)
     if response.status_code == 200:
         wav_url = response.json().get('wav_url')
         if wav_url:
             resp = requests.get(wav_url, headers={'Apikey': Apikey})
             if resp.status_code == 200:
-                temp_dir = 'temp'
+                temp_dir = os.path.abspath('temp')
                 temp_file = os.path.join(temp_dir, 'temp.wav')
                 os.makedirs(temp_dir, exist_ok=True)
                 try:
                     with open(temp_file, 'wb') as file:
                         file.write(resp.content)
-                    play_sound([temp_file])
-                    print("File saved to temp/temp.wav")
+                    play_sound.delay([temp_file])
+                    time.sleep(rounded_duration)
                 finally:
                     shutil.rmtree(temp_dir)
+                    pass
                 return JsonResponse({"status":True,"msg":"success"}, status=200)
             else:
                 print(f"Failed to download audio: {resp.reason}")

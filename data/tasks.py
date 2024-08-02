@@ -61,6 +61,9 @@ def check_schedule():
 def play_sound(sound_paths=[]):
     if not sound_paths:
         sound_paths=['audio/bell/sound1/First.wav','audio/bell/sound2/First.wav','audio/bell/sound3/First.wav']
+    else:
+        if len(sound_paths) == 1:
+            sound_paths=['audio/bell/sound1/First.wav',sound_paths[0],'audio/bell/sound1/First.wav']
     try:
         pygame.mixer.init()
         for path in sound_paths:
