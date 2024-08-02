@@ -4,6 +4,11 @@ from django.views.decorators.http import require_http_methods
 from data.models import Audio, Day, Bell, Schedule
 from datetime import datetime
 from data.tasks import play_sound,check_schedule
+import requests
+import os
+import shutil
+import json
+import time
 
 # Create your views here.
 
@@ -68,3 +73,45 @@ def delete_schedule(request, schedule_id):
     schedule = get_object_or_404(Schedule, pk=schedule_id)
     schedule.delete()
     return JsonResponse({'message': 'Schedule deleted successfully.'})
+
+@require_http_methods(["POST"])
+def text_to_speech(request):
+    try:
+        data = json.loads(request.body)
+        input_text = data.get('text')
+    except:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    Apikey='GgKWVlLWrUeiFu90YgS01AVwKS0rHTcQ'
+    url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual'
+    headers = {'Apikey':Apikey,'Content-Type' : 'application/json'}
+    text = input_text
+    data = {'input_text':text,'speaker': 1, 'phrase_break':0, 'audiovisual':0}
+    response = requests.post(url, json=data, headers=headers)
+    print(response.json().get('wav_url'))
+    
+    time.sleep(3)
+    if response.status_code == 200:
+        wav_url = response.json().get('wav_url')
+        if wav_url:
+            resp = requests.get(wav_url, headers={'Apikey': Apikey})
+            if resp.status_code == 200:
+                temp_dir = 'temp'
+                temp_file = os.path.join(temp_dir, 'temp.wav')
+                os.makedirs(temp_dir, exist_ok=True)
+                try:
+                    with open(temp_file, 'wb') as file:
+                        file.write(resp.content)
+                    play_sound([temp_file])
+                    print("File saved to temp/temp.wav")
+                finally:
+                    shutil.rmtree(temp_dir)
+                return JsonResponse({"status":True,"msg":"success"}, status=200)
+            else:
+                print(f"Failed to download audio: {resp.reason}")
+                return JsonResponse({"status":False,"msg":f"Failed to download audio: {resp.reason}"}, status=200)
+        else:
+            print("No wav_url found in the response.")
+            return JsonResponse({"status":False,"msg":"No wav_url found in the response."}, status=200)
+    else:
+        print(f"Failed to synthesize speech: {response.reason}")
+        return JsonResponse({"status":False,"msg":f"Failed to synthesize speech: {response.reason}"}, status=200)

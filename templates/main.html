@@ -10,12 +10,10 @@
 </style>
 <main id="main" class="main">
   <div class="pagetitle">
-    <h1>Data Tables</h1>
+    <h1>หน้าแรก</h1>
     <nav>
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-        <li class="breadcrumb-item">Tables</li>
-        <li class="breadcrumb-item active">Data</li>
       </ol>
     </nav>
   </div>
@@ -26,7 +24,7 @@
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Datatables</h5>
+            <h5 class="card-title">ตารางการแจ้งเตือน</h5>
             <!-- Basic Modal -->
             <button
               type="button"
@@ -36,6 +34,19 @@
             >
               <i class="bi bi-plus-circle-fill"></i> เพิ่มการแจ้งเตือน
             </button>
+            <form id="speech_form" action="POST">
+              <div class="row mb-3">
+                <label for="inputText" class="col-md-2 col-form-label"
+                  ><strong>แปลงข้อความเป็นเสียง</strong></label
+                >
+                <div class="col-md-4">
+                  <input type="text" class="form-control" id="inputText" maxlength="300" required autocomplete="off"/>                  
+                </div>
+                <div class="col-md-2">
+                  <button type="submit" class="btn btn-success" title="เล่น"><i class='bx bx-play-circle'></i> เล่น</button>
+                </div>
+              </div>
+            </form>
             <div class="modal fade" id="basicModal" tabindex="-1">
               <div class="modal-dialog">
                 <div class="modal-content">
@@ -307,6 +318,45 @@
     }
     return false; // Prevent default action of the button
 }
+
+document.getElementById('speech_form').addEventListener('submit', function(event) {
+  event.preventDefault(); // Prevent the default form submission
+
+  const inputText = document.getElementById('inputText').value;
+
+  // Create a JSON object
+  const data = {
+      text: inputText
+  };
+
+  const csrftoken = getCookie('csrftoken');
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  const originalText = submitButton.innerHTML;
+  submitButton.innerHTML = 'กำลังดำเนินการ...';
+
+  // Send the JSON data using Fetch API
+  fetch('/speech', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken,
+      },
+      body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(data => {
+      // Handle the response data
+      console.log('Success:', data);
+  })
+  .catch((error) => {
+      console.error('Error:', error);
+  }).finally(() => {
+    submitButton.disabled = false;
+    submitButton.innerHTML = originalText; // Restore the original button text
+  });
+});
 
 function getCookie(name) {
   let cookieValue = null;

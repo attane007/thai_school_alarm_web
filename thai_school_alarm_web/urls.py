@@ -23,7 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", views.index),
     path("save_form",views.save_form),
-    path('delete_schedule/<int:schedule_id>/', views.delete_schedule)
+    path('delete_schedule/<int:schedule_id>/', views.delete_schedule),
+    path("speech",views.text_to_speech),
 ]
 
 if settings.DEBUG:
