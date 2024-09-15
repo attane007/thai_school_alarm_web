@@ -13,7 +13,7 @@
     <h1>หน้าแรก</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
       </ol>
     </nav>
   </div>
@@ -217,7 +217,7 @@
             </div>
             <!-- End Basic Modal-->
             <!-- Table with stripped rows -->
-            <table class="table datatable">
+            <table class="table" id="myTable">
               <thead>
                 <tr>
                   <th>ลำดับที่</th>
@@ -262,7 +262,16 @@
   </section>
 </main>
 <!-- End #main -->
-
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const dataTable = new simpleDatatables.DataTable("#myTable", {
+      searchable: true,
+      fixedHeight: false,
+      perPage: 50,
+      perPageSelect: [10, 25, 50, 100]
+    });
+  });
+</script>
 <script>
   // Function to handle form submission
   function submitForm(event) {
@@ -373,9 +382,6 @@ function getCookie(name) {
   }
   return cookieValue;
 }
-
-  // Add event listener to form submission
-  document.getElementById("schoolAlarm").addEventListener("submit", submitForm);
 </script>
 
 {% endblock main %}
