@@ -50,7 +50,8 @@ def save_form(request):
             time_str = f"{hour}:{minute}"
             try:
                 time_obj = datetime.strptime(time_str, '%H:%M')
-            except ValueError:
+            except Exception as e:
+                print(f"Exception occurred: {str(e)}")
                 return JsonResponse({'error': 'Invalid time format. Must be in HH:MM format.'}, status=400)
 
             schedule = Schedule(

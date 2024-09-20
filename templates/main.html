@@ -61,7 +61,7 @@
                   </div>
                   <div class="modal-body">
                     <!-- Horizontal Form -->
-                    <form id="schoolAlarm">
+                    <form id="schoolAlarm" onsubmit="return submitForm(event)">
                       {% csrf_token %}
                       <div class="row mb-3">
                         <label for="inputTime" class="col-sm-2 col-form-label"
@@ -75,17 +75,21 @@
                             required
                           >
                             <option value="" disabled selected>ชั่วโมง</option>
+                          </select>
                             <!-- Generate options dynamically from 1 to 24 -->
                             <script>
-                              for (let i = 1; i <= 24; i++) {
-                                document.write(
-                                  `<option value="${i}">${
-                                    i < 10 ? "0" + i : i
-                                  }</option>`
-                                );
+                              const selectElement = document.getElementById("inputTime");
+                              
+                              // Generate options dynamically from 00 to 23
+                              let options = '';
+                              for (let i = 0; i < 24; i++) {
+                                let formattedHour = i < 10 ? "0" + i : i;
+                                options += `<option value="${i}">${formattedHour}</option>`;
                               }
-                            </script>
-                          </select>
+                              
+                              // Append generated options to the select element
+                              selectElement.innerHTML += options;
+                          </script>
                         </div>
                         <div class="col-sm-4">
                           <select
@@ -94,18 +98,21 @@
                             id="inputMinute"
                             required
                           >
-                            <option value="" disabled selected>นาที</option>
-                            <!-- Generate options dynamically from 0 to 59 -->
-                            <script>
-                              for (let i = 0; i < 60; i++) {
-                                document.write(
-                                  `<option value="${i}">${
-                                    i < 10 ? "0" + i : i
-                                  }</option>`
-                                );
-                              }
-                            </script>
+                            <option value="" disabled selected>นาที</option>                            
                           </select>
+                          <script>
+                              const minuteSelectElement = document.getElementById("inputMinute");
+
+                              // Generate options dynamically from 00 to 59
+                              let minuteOptions = '';
+                              for (let i = 0; i < 60; i++) {
+                                let formattedMinute = i < 10 ? "0" + i : i;
+                                minuteOptions += `<option value="${i}">${formattedMinute}</option>`;
+                              }
+
+                              // Append generated options to the select element
+                              minuteSelectElement.innerHTML += minuteOptions;
+                          </script>
                         </div>
                       </div>
                       <div class="row mb-3">

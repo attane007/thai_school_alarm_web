@@ -7,3 +7,5 @@ alarm/
 play_sound.log
 data/migrations/__pycache__/
 static/
+info.log
+debug.log
