@@ -91,7 +91,7 @@ def text_to_speech(request):
         input_text = data.get('text')
     except:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    Apikey=settings.voice_api_key
+    Apikey=settings.VOICE_API_KEY
     url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual'
     headers = {'Apikey':Apikey,'Content-Type' : 'application/json'}
     text = input_text
@@ -153,7 +153,7 @@ def create_audio(request):
         input_text = data.get('text')
     except:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    Apikey=settings.voice_api_key
+    Apikey=settings.VOICE_API_KEY
     url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual'
     headers = {'Apikey':Apikey,'Content-Type' : 'application/json'}
     text = input_text
