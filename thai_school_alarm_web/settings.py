@@ -133,8 +133,10 @@ CSRF_COOKIE_SECURE=True
 SESSION_COOKIE_SECURE=True
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://alarm.ppks.ac.th',
+    # 'alar.example.com',
 ]
+
+voice_api_key='GgKWVlLWrUeiFu90YgS01AVwKS0rHTcQ'
 
 LOG_DIR = os.path.join(BASE_DIR, 'logs')
 if not os.path.exists(LOG_DIR):
