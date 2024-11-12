@@ -13,7 +13,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.11,3.12]
+        python-version: [3.11]
 
     steps:
     - uses: actions/checkout@v4
@@ -34,6 +34,11 @@ jobs:
         ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
       run: |
         python manage.py test
+
+    - name: Add SSH key
+      uses: webfactory/ssh-agent@v0.5.4
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Deploy to VPS
       run: |
