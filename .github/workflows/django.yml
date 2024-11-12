@@ -34,3 +34,27 @@ jobs:
         ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
       run: |
         python manage.py test
+
+    - name: Deploy to VPS
+      run: |
+        ssh -p 222 -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
+          if [ ! -d "/var/www/thai_school_alarm_web" ]; then
+            mkdir -p /var/www/thai_school_alarm_web  # สร้าง directory /root/redirect ถ้ายังไม่มี
+          fi
+          cd /var/www/thai_school_alarm_web
+          if [ ! -d ".git" ]; then
+            git clone https://github.com/attane007/thai_school_alarm_web.git .  # ทำการ clone repository
+          fi
+          git pull origin master   # Pull the latest changes
+
+          # สร้าง virtual environment ถ้ายังไม่มี
+          if [ ! -d "/var/www/env" ]; then
+            python3 -m venv /var/www/thai_school_alarm_web
+          fi
+
+          source /var/www/thai_school_alarm_web
+          pip install -r requirements.txt  # Install any dependencies
+          systemctl restart alarm.service  # Restart FastAPI service
+          systemctl restart alarm_celery.service
+          systemctl restart alarm_beat.service
+        EOF
