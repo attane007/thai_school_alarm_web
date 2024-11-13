@@ -124,6 +124,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
+
 # Celery settings
 CELERY_BROKER_URL = 'amqp://user:school_alarm@localhost:5672//'
 # CELERY_RESULT_BACKEND = 'django-db'

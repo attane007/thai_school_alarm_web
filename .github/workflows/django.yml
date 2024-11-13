@@ -51,6 +51,7 @@ jobs:
             git clone https://github.com/attane007/thai_school_alarm_web.git .  # ทำการ clone repository
           fi
           git pull origin master   # Pull the latest changes
+          python3 manage.py collectstatic --noinput
 
           # สร้าง virtual environment ถ้ายังไม่มี
           if [ ! -d "/var/www/env" ]; then
