@@ -48,10 +48,9 @@ jobs:
           fi
           cd /var/www/thai_school_alarm_web
           if [ ! -d ".git" ]; then
-            git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/attane007/thai_school_alarm_web.git .  # ทำการ clone repository
+            git clone https://attane007:${{ secrets.GITHUB_TOKEN }}@github.com/attane007/thai_school_alarm_web.git .  # ทำการ clone repository
           fi
-          git config --global credential.helper
-          git pull https://${{ secrets.GITHUB_TOKEN }}@github.com/attane007/thai_school_alarm_web.git master   # Pull the latest changes
+          git pull https://attane007:${{ secrets.GITHUB_TOKEN }}@github.com/attane007/thai_school_alarm_web.git master   # Pull the latest changes
 
           # สร้าง virtual environment ถ้ายังไม่มี
           if [ ! -d "/var/www/env" ]; then
