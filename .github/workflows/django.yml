@@ -51,7 +51,6 @@ jobs:
             git clone https://github.com/attane007/thai_school_alarm_web.git .  # ทำการ clone repository
           fi
           git pull origin master   # Pull the latest changes
-          python3 manage.py collectstatic --noinput
 
           # สร้าง virtual environment ถ้ายังไม่มี
           if [ ! -d "/var/www/env" ]; then
@@ -60,6 +59,7 @@ jobs:
 
           source /var/www/env/bin/activate
           pip install -r requirements.txt  # Install any dependencies
+          python3 /var/www/thai_school_alarm_web/manage.py collectstatic --noinput
           systemctl restart alarm.service  # Restart FastAPI service
           systemctl restart alarm_celery.service
           systemctl restart alarm_beat.service
