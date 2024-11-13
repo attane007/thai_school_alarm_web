@@ -10,3 +10,4 @@ static/
 info.log
 debug.log
 .env
+/env
