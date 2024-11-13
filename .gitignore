@@ -11,3 +11,4 @@ info.log
 debug.log
 .env
 /env
+staticfiles
