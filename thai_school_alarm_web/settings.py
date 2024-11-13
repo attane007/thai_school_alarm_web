@@ -90,7 +90,6 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
-WHITENOISE_MANIFEST_STRICT = True
 
 
 # Password validation
@@ -146,3 +145,5 @@ SESSION_COOKIE_SECURE=True
 
 CSRF_TRUSTED_ORIGINS =config('CSRF_TRUSTED_ORIGINS', default='').split(',')
 VOICE_API_KEY=config('VOICE_API_KEY')
+
+WHITENOISE_MANIFEST_STRICT = False
