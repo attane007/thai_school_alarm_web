@@ -77,10 +77,15 @@ def sound(request):
 
 def setting(request):
     voice_api_key=Utility.objects.filter(name="voice_api_key").first()
-    if voice_api_key and len(voice_api_key.value) > 4:
-        masked_value = 'x' * (len(voice_api_key.value) - 4) + voice_api_key.value[-4:]
+    if voice_api_key:  # Check if the record exists
+        # Mask the value if it's longer than 4 characters
+        if len(voice_api_key.value) > 4:
+            masked_value = 'x' * (len(voice_api_key.value) - 4) + voice_api_key.value[-4:]
+        else:
+            masked_value = voice_api_key.value
     else:
-        masked_value = voice_api_key.value
+        # If the record doesn't exist, set masked_value to an empty string or a placeholder
+        masked_value = ''
     context = {
         'voice_api_key': masked_value,
     }
