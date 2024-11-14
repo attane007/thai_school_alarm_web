@@ -2,7 +2,7 @@ from django.shortcuts import render,get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
-from data.models import Audio, Day, Bell, Schedule
+from data.models import Audio, Day, Bell, Schedule, Utility
 from datetime import datetime
 from data.tasks import play_sound,check_schedule
 import requests
@@ -11,18 +11,9 @@ import shutil
 import json
 import time
 import math
-import wave
+from data.function import get_wav_length
 
-# Create your views here.
-def get_wav_length(file_path):
-    with wave.open(file_path, 'rb') as wav_file:
-        # Get the number of frames and the frame rate
-        num_frames = wav_file.getnframes()
-        frame_rate = wav_file.getframerate()
-        # Calculate the duration in seconds
-        duration = num_frames / float(frame_rate)
-        return duration
-
+#template zone
 def index(request):
     audios = Audio.objects.all()
     days = Day.objects.all()
@@ -78,63 +69,26 @@ def save_form(request):
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
     
-@require_http_methods(["DELETE"])
-def delete_schedule(request, schedule_id):
-    schedule = get_object_or_404(Schedule, pk=schedule_id)
-    schedule.delete()
-    return JsonResponse({'message': 'Schedule deleted successfully.'})
-
-@require_http_methods(["POST"])
-def text_to_speech(request):
-    try:
-        data = json.loads(request.body)
-        input_text = data.get('text')
-    except:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    Apikey=settings.VOICE_API_KEY
-    url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual'
-    headers = {'Apikey':Apikey,'Content-Type' : 'application/json'}
-    text = input_text
-    data = {'input_text':text,'speaker': 1, 'phrase_break':0, 'audiovisual':0}
-    response = requests.post(url, json=data, headers=headers)
-    durations=response.json().get('durations')
-    rounded_duration = math.ceil(durations)
-    rounded_duration=rounded_duration+10
-    
-    time.sleep(1)
-    if response.status_code == 200:
-        wav_url = response.json().get('wav_url')
-        if wav_url:
-            resp = requests.get(wav_url, headers={'Apikey': Apikey})
-            if resp.status_code == 200:
-                temp_dir = os.path.abspath('temp')
-                temp_file = os.path.join(temp_dir, 'temp.wav')
-                os.makedirs(temp_dir, exist_ok=True)
-                try:
-                    with open(temp_file, 'wb') as file:
-                        file.write(resp.content)
-                    play_sound.delay([temp_file])
-                    time.sleep(rounded_duration)
-                finally:
-                    shutil.rmtree(temp_dir)
-                    pass
-                return JsonResponse({"status":True,"msg":"success"}, status=200)
-            else:
-                print(f"Failed to download audio: {resp.reason}")
-                return JsonResponse({"status":False,"msg":f"Failed to download audio: {resp.reason}"}, status=200)
-        else:
-            print("No wav_url found in the response.")
-            return JsonResponse({"status":False,"msg":"No wav_url found in the response."}, status=200)
-    else:
-        print(f"Failed to synthesize speech: {response.reason}")
-        return JsonResponse({"status":False,"msg":f"Failed to synthesize speech: {response.reason}"}, status=200)
-    
-def setting(request):
+def sound(request):
     audios = Audio.objects.all()
     context = {
         'audios': audios,
     }
+    return render(request, 'sound.html', context)
+
+def setting(request):
+    voice_api_key=Utility.objects.filter(name="voice_api_key").first()
+    if voice_api_key and len(voice_api_key.value) > 4:
+        masked_value = 'x' * (len(voice_api_key.value) - 4) + voice_api_key.value[-4:]
+    else:
+        masked_value = voice_api_key.value if voice_api_key else None
+    context = {
+        'voice_api_key': masked_value,
+    }
     return render(request, 'setting.html', context)
+
+
+# API zone
 
 @require_http_methods(["DELETE"])
 def delete_audio(request,audio_id):
@@ -201,3 +155,78 @@ def play_audio(request,audio_id):
     finally:
         pass
     return JsonResponse({'message': 'Audio played successfully.'})
+
+@require_http_methods(["DELETE"])
+def delete_schedule(request, schedule_id):
+    schedule = get_object_or_404(Schedule, pk=schedule_id)
+    schedule.delete()
+    return JsonResponse({'message': 'Schedule deleted successfully.'})
+
+@require_http_methods(["POST"])
+def text_to_speech(request):
+    try:
+        data = json.loads(request.body)
+        input_text = data.get('text')
+    except:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    Apikey=settings.VOICE_API_KEY
+    url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual'
+    headers = {'Apikey':Apikey,'Content-Type' : 'application/json'}
+    text = input_text
+    data = {'input_text':text,'speaker': 1, 'phrase_break':0, 'audiovisual':0}
+    response = requests.post(url, json=data, headers=headers)
+    durations=response.json().get('durations')
+    rounded_duration = math.ceil(durations)
+    rounded_duration=rounded_duration+10
+    
+    time.sleep(1)
+    if response.status_code == 200:
+        wav_url = response.json().get('wav_url')
+        if wav_url:
+            resp = requests.get(wav_url, headers={'Apikey': Apikey})
+            if resp.status_code == 200:
+                temp_dir = os.path.abspath('temp')
+                temp_file = os.path.join(temp_dir, 'temp.wav')
+                os.makedirs(temp_dir, exist_ok=True)
+                try:
+                    with open(temp_file, 'wb') as file:
+                        file.write(resp.content)
+                    play_sound.delay([temp_file])
+                    time.sleep(rounded_duration)
+                finally:
+                    shutil.rmtree(temp_dir)
+                    pass
+                return JsonResponse({"status":True,"msg":"success"}, status=200)
+            else:
+                print(f"Failed to download audio: {resp.reason}")
+                return JsonResponse({"status":False,"msg":f"Failed to download audio: {resp.reason}"}, status=200)
+        else:
+            print("No wav_url found in the response.")
+            return JsonResponse({"status":False,"msg":"No wav_url found in the response."}, status=200)
+    else:
+        print(f"Failed to synthesize speech: {response.reason}")
+        return JsonResponse({"status":False,"msg":f"Failed to synthesize speech: {response.reason}"}, status=200)
+
+@require_http_methods(["POST"])
+def add_voice_api_key(request):
+    try:
+        data = json.loads(request.body)  
+        voice_api_key = data.get('voice_api_key', '')
+
+
+        if voice_api_key:
+            existing_key = Utility.objects.filter(name='voice_api_key').first()
+            
+            if existing_key:
+                existing_key.value = voice_api_key
+                existing_key.save()
+                return JsonResponse({'message': 'API Key updated successfully'}, status=200)
+            else:
+                Utility.objects.create(name='voice_api_key', value=voice_api_key)
+                return JsonResponse({'message': 'API Key created successfully'}, status=201)
+        else:
+            return JsonResponse({'error': 'No API key provided'}, status=400)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+

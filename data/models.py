@@ -35,7 +35,7 @@ class Schedule(models.Model):
         return f"Schedule {self.id}"
     
 class Utility(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200,unique=True)
     value = models.CharField(max_length=200)
 
     def __str__(self):

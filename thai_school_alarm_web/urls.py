@@ -25,10 +25,12 @@ urlpatterns = [
     path("save_form",views.save_form),
     path('delete_schedule/<int:schedule_id>/', views.delete_schedule),
     path("speech",views.text_to_speech),
+    path("sound",views.sound),
     path("setting",views.setting),
     path("delete_audio/<int:audio_id>/",views.delete_audio),
     path("play_audio/<int:audio_id>/",views.play_audio),
-    path("create_audio",views.create_audio)
+    path("create_audio",views.create_audio),
+    path("add_voice_api_key",views.add_voice_api_key)
 ]
 
 if settings.DEBUG:

@@ -283,6 +283,10 @@
           <i class="bi bi-grid"></i>
           <span>Dashboard</span>
         </a>
+        <a class="nav-link collapsed" href="/sound">
+          <i class='bx bxs-user-voice'></i>
+          <span>Sound</span>
+        </a>
         <a class="nav-link collapsed" href="/setting">
           <i class='bx bx-cog' ></i>
           <span>Setting</span>
@@ -341,7 +345,7 @@
   </script>
   <!-- Template Main JS File -->
   <script src="{% static "assets/js/main.js" %}"></script>
-
+  {% block js %}{% endblock js %}
 </body>
 
 </html>
