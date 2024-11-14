@@ -40,7 +40,7 @@
                 </div>
               </div>
             </form>
-            <h6>Voice API Key: {% if voice_api_key %}{{ voice_api_key.value }}{% else %}ไม่มี{% endif %}</h6>
+            <h6>Voice API Key: {% if voice_api_key %}{{ voice_api_key }}{% else %}ไม่มี{% endif %}</h6>
           </div>
         </div>
       </div>
@@ -72,11 +72,17 @@
     })
     .then(response => response.json())  // จัดการ response ที่ได้กลับมา
     .then(data => {
-      console.log(data);  // แสดงข้อมูลที่ได้จาก backend
-      // อาจจะแสดงข้อความแจ้งเตือน หรือรีเฟรชหน้าเว็บ
+      if (data.message) {
+        // If the response contains a message, it means success
+        alert('API Key updated successfully!');
+        window.location.reload();  // Reload the page
+      } else if (data.error) {
+        // If the response contains an error, show an alert
+        alert('Error: ' + data.error);
+      }
     })
     .catch(error => {
-      console.error('Error:', error);  // จัดการข้อผิดพลาด
+      alert('An unexpected error occurred.');
     });
   });
 </script>

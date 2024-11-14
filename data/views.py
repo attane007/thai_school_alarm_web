@@ -1,7 +1,6 @@
 from django.shortcuts import render,get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.conf import settings
 from data.models import Audio, Day, Bell, Schedule, Utility
 from datetime import datetime
 from data.tasks import play_sound,check_schedule
@@ -81,7 +80,7 @@ def setting(request):
     if voice_api_key and len(voice_api_key.value) > 4:
         masked_value = 'x' * (len(voice_api_key.value) - 4) + voice_api_key.value[-4:]
     else:
-        masked_value = voice_api_key.value if voice_api_key else None
+        masked_value = voice_api_key.value
     context = {
         'voice_api_key': masked_value,
     }
@@ -107,7 +106,8 @@ def create_audio(request):
         input_text = data.get('text')
     except:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    Apikey=settings.VOICE_API_KEY
+    voice_api_key = Utility.objects.get(name="voice_api_key")
+    Apikey=voice_api_key.value
     url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual'
     headers = {'Apikey':Apikey,'Content-Type' : 'application/json'}
     text = input_text
@@ -169,7 +169,8 @@ def text_to_speech(request):
         input_text = data.get('text')
     except:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    Apikey=settings.VOICE_API_KEY
+    voice_api_key=Utility.objects.get(name="voice_api_key")
+    Apikey=voice_api_key.value
     url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual'
     headers = {'Apikey':Apikey,'Content-Type' : 'application/json'}
     text = input_text
