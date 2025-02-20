@@ -35,33 +35,33 @@ jobs:
       run: |
         python manage.py test
 
-    - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.5.4
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    # - name: Add SSH key
+    #   uses: webfactory/ssh-agent@v0.5.4
+    #   with:
+    #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Deploy to VPS
-      run: |
-        ssh -p 222 -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
-          if [ ! -d "/var/www/thai_school_alarm_web" ]; then
-            mkdir -p /var/www/thai_school_alarm_web  # สร้าง directory /root/redirect ถ้ายังไม่มี
-          fi
-          cd /var/www/thai_school_alarm_web
-          if [ ! -d ".git" ]; then
-            git clone https://attane007:${{ secrets.GITHUB_TOKEN }}@github.com/attane007/thai_school_alarm_web.git .  # ทำการ clone repository
-          fi
-          git pull https://attane007:${{ secrets.GITHUB_TOKEN }}@github.com/attane007/thai_school_alarm_web.git master   # Pull the latest changes
+    # - name: Deploy to VPS
+    #   run: |
+    #     ssh -p 222 -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << EOF
+    #       if [ ! -d "/var/www/thai_school_alarm_web" ]; then
+    #         mkdir -p /var/www/thai_school_alarm_web  # สร้าง directory /root/redirect ถ้ายังไม่มี
+    #       fi
+    #       cd /var/www/thai_school_alarm_web
+    #       if [ ! -d ".git" ]; then
+    #         git clone https://attane007:${{ secrets.GITHUB_TOKEN }}@github.com/attane007/thai_school_alarm_web.git .  # ทำการ clone repository
+    #       fi
+    #       git pull https://attane007:${{ secrets.GITHUB_TOKEN }}@github.com/attane007/thai_school_alarm_web.git master   # Pull the latest changes
 
-          # สร้าง virtual environment ถ้ายังไม่มี
-          if [ ! -d "/var/www/env" ]; then
-            python3 -m venv /var/www/env
-          fi
+    #       # สร้าง virtual environment ถ้ายังไม่มี
+    #       if [ ! -d "/var/www/env" ]; then
+    #         python3 -m venv /var/www/env
+    #       fi
 
-          source /var/www/env/bin/activate
-          pip install -r requirements.txt  # Install any dependencies
-          python3 /var/www/thai_school_alarm_web/manage.py migrate
-          python3 /var/www/thai_school_alarm_web/manage.py collectstatic --noinput
-          systemctl restart alarm.service  # Restart FastAPI service
-          systemctl restart alarm_celery.service
-          systemctl restart alarm_beat.service
-        EOF
+    #       source /var/www/env/bin/activate
+    #       pip install -r requirements.txt  # Install any dependencies
+    #       python3 /var/www/thai_school_alarm_web/manage.py migrate
+    #       python3 /var/www/thai_school_alarm_web/manage.py collectstatic --noinput
+    #       systemctl restart alarm.service  # Restart FastAPI service
+    #       systemctl restart alarm_celery.service
+    #       systemctl restart alarm_beat.service
+    #     EOF
