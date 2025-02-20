@@ -32,13 +32,13 @@
     <!-- Template Main CSS File -->
     <link href="{% static 'assets/css/style.css' %}" rel="stylesheet" />
 
-    <!--      =======================================================
+    <!--       =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Updated: Apr 20 2024 with Bootstrap v5.3.3
   * Author: BootstrapMade.com
   * License: https://bootstrapmade.com/license/
-  ========================================================      -->
+  ========================================================       -->
   </head>
 
   <body>
@@ -355,14 +355,25 @@
               .then((response) => response.json())
               .then((data) => {
                 const latestVersion = data.version // The version from GitHub
+                const releaseDate = data.release_date // Release date from GitHub
+                const changelog = data.changelog.join('<br>') // Changelog formatted for display
       
                 // Check if an update is available
                 if (latestVersion !== currentVersion) {
+                  // Update the modal body with the version details
+                  const modalBody = document.querySelector('#updateModal .modal-body')
+                  modalBody.innerHTML = `
+                                  <strong>New Version Available: ${latestVersion}</strong><br>
+                                  <strong>Release Date:</strong> ${releaseDate}<br><br>
+                                  <strong>Changelog:</strong><br>
+                                  ${changelog}
+                              `
+      
                   // Show the update modal if a new version is available
                   const updateModal = new bootstrap.Modal(document.getElementById('updateModal'))
                   updateModal.show()
-                }else{
-                  console.log("same version");
+                } else {
+                  console.log('same version')
                 }
               })
               .catch((error) => console.error('Error fetching GitHub version:', error))
