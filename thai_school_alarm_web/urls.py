@@ -33,6 +33,7 @@ urlpatterns = [
     path("create_audio",views.create_audio),
     path("add_voice_api_key",views.add_voice_api_key),
     path("api/setup/",views.api_setup),
+    path('api/version/', views.get_current_version, name='get_current_version'),
 ]
 
 if settings.DEBUG:

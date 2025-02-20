@@ -19,6 +19,7 @@ import threading
 from data.function import get_wav_length
 from functools import wraps
 from decouple import Config,RepositoryEnv
+from django.conf import settings
 
 def check_env_file(view_func):
     """Decorator to check if the .env file exists and required variables are set."""
@@ -316,3 +317,20 @@ def api_setup(request):
             return JsonResponse({"message": "Setup completed successfully."}, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+
+@require_http_methods(["GET"])
+def get_current_version(request):
+    # Get the path to the version.json file
+    version_file_path = os.path.join(settings.BASE_DIR, 'version.json')
+
+    try:
+        # Open and read the version.json file
+        with open(version_file_path, 'r') as version_file:
+            version_data = json.load(version_file)
+            current_version = version_data.get('version', 'Unknown')
+    except FileNotFoundError:
+        return JsonResponse({"error": "version.json not found"}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Error parsing version.json"}, status=500)
+
+    return JsonResponse({"version": current_version})
