@@ -12,6 +12,8 @@ import time
 import math
 import secrets
 import re
+import subprocess
+import platform
 from data.function import get_wav_length
 from functools import wraps
 from decouple import Config,RepositoryEnv
@@ -270,6 +272,7 @@ def add_voice_api_key(request):
 @require_http_methods(["POST"])
 def api_setup(request):
     ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    SCRIPT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'deploy_django.sh')  # Path to the .sh script
 
     """Handles the setup process for generating the .env file."""
     if request.method == "POST":
@@ -293,6 +296,15 @@ def api_setup(request):
                 env_file.write(f"DEBUG=False\n")
                 env_file.write(f"ALLOWED_HOSTS={domain}\n")
                 env_file.write(f"CSRF_TRUSTED_ORIGINS={domain}\n")
+
+
+                 # Execute the script only if not on Windows
+                if platform.system() != "Windows":
+                    print(SCRIPT_PATH)
+                    if not os.path.exists(SCRIPT_PATH):
+                        return JsonResponse({"error": f"Script not found at {SCRIPT_PATH}"}, status=500)
+                    
+                    result = subprocess.run(["/bin/bash", SCRIPT_PATH], capture_output=True, text=True)
 
             # Return success response
             return JsonResponse({"message": "Setup completed successfully."}, status=200)
