@@ -41,8 +41,8 @@ check_python_version
 
 # 1. Install required packages
 echo "Installing required packages..."
-sudo apt update
-sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential libsqlite3-dev
+# sudo apt update
+sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential
 
 # Ensure /var/www exists and set correct ownership
 if [ ! -d "/var/www" ]; then
