@@ -275,6 +275,8 @@ def add_voice_api_key(request):
 @require_http_methods(["POST"])
 def api_setup(request):
     ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    if os.path.exists(ENV_PATH):
+        return JsonResponse({"error": ".env file already exists."}, status=400)
 
     """Handles the setup process for generating the .env file."""
     if request.method == "POST":
