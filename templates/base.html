@@ -32,13 +32,13 @@
     <!-- Template Main CSS File -->
     <link href="{% static 'assets/css/style.css' %}" rel="stylesheet" />
 
-    <!--       =======================================================
+    <!--          =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Updated: Apr 20 2024 with Bootstrap v5.3.3
   * Author: BootstrapMade.com
   * License: https://bootstrapmade.com/license/
-  ========================================================       -->
+  ========================================================          -->
   </head>
 
   <body>
@@ -208,7 +208,7 @@
           <!-- End Messages Nav --> {% endcomment %}
 
           <li class="nav-item pe-3">
-            <a class="nav-link nav-icon" href="#">
+            <a class="nav-link nav-icon" href="#" data-bs-toggle="modal" data-bs-target="#updateModal">
               <i class="bx bxs-cloud-download"></i>
               อัพเดต
             </a>
@@ -355,24 +355,33 @@
               .then((response) => response.json())
               .then((data) => {
                 const latestVersion = data.version // The version from GitHub
-                const releaseDate = data.release_date // Release date from GitHub
-                const changelog = data.changelog.join('<br>') // Changelog formatted for display
-      
                 // Check if an update is available
                 if (latestVersion !== currentVersion) {
+                  const releaseDate = data.release_date // Release date from GitHub
+                  const changelog = data.changelog.join('<br>') // Changelog formatted for display
                   // Update the modal body with the version details
                   const modalBody = document.querySelector('#updateModal .modal-body')
                   modalBody.innerHTML = `
-                                  <strong>New Version Available: ${latestVersion}</strong><br>
-                                  <strong>Release Date:</strong> ${releaseDate}<br><br>
-                                  <strong>Changelog:</strong><br>
-                                  ${changelog}
-                              `
+                                          <strong>New Version Available: ${latestVersion}</strong><br>
+                                          <strong>Release Date:</strong> ${releaseDate}<br><br>
+                                          <strong>Changelog:</strong><br>
+                                          ${changelog}
+                                                `
       
                   // Show the update modal if a new version is available
                   const updateModal = new bootstrap.Modal(document.getElementById('updateModal'))
                   updateModal.show()
                 } else {
+                  const latestVersion = currentData.version // The version from GitHub
+                  const releaseDate = currentData.release_date // Release date from GitHub
+                  const changelog = currentData.changelog.join('<br>') // Changelog formatted for display
+                  const modalBody = document.querySelector('#updateModal .modal-body')
+                  modalBody.innerHTML = `
+                                          <strong>New Version Available: ${latestVersion}</strong><br>
+                                          <strong>Release Date:</strong> ${releaseDate}<br><br>
+                                          <strong>Changelog:</strong><br>
+                                          ${changelog}
+                                                `
                   console.log('same version')
                 }
               })
