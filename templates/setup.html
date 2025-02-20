@@ -81,8 +81,8 @@
         const result = await response.json()
     
         if (response.ok) {
-          alert('Setup completed successfully!')
           setTimeout(() => {
+            alert('Setup completed successfully!')
             window.location.href = '/'
           }, 5000)
         } else {
