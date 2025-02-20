@@ -274,7 +274,6 @@ def add_voice_api_key(request):
 @require_http_methods(["POST"])
 def api_setup(request):
     ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
-    SCRIPT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'reload_django.sh')  # Path to the .sh script
 
     """Handles the setup process for generating the .env file."""
     if request.method == "POST":
@@ -300,19 +299,14 @@ def api_setup(request):
 
         # Create and write to .env file
         try:
-            # with open(ENV_PATH, "w") as env_file:
-            #     env_file.write(f"SECRET_KEY={secret_key}\n")
-            #     env_file.write(f"DEBUG=False\n")
-            #     env_file.write(f"ALLOWED_HOSTS={domain_no_port}\n")
-            #     env_file.write(f"CSRF_TRUSTED_ORIGINS={domain}\n")
+            with open(ENV_PATH, "w") as env_file:
+                env_file.write(f"SECRET_KEY={secret_key}\n")
+                env_file.write(f"DEBUG=False\n")
+                env_file.write(f"ALLOWED_HOSTS={domain_no_port}\n")
+                env_file.write(f"CSRF_TRUSTED_ORIGINS={domain}\n")
 
             # Execute the script only if not on Windows
-            print(SCRIPT_PATH)
             if platform.system() != "Windows":
-                # if not os.path.exists(SCRIPT_PATH):
-                #     return JsonResponse({"error": f"Script not found at {SCRIPT_PATH}"}, status=500)
-                # subprocess.run(["chmod", "+x", SCRIPT_PATH], check=True)
-                # result = subprocess.run(["/bin/bash", SCRIPT_PATH], capture_output=True, text=True)
                 subprocess.Popen(["sudo", "systemctl", "restart", "thai_school_alarm_web.service"])
 
 
