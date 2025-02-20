@@ -308,6 +308,7 @@ def api_setup(request):
             # Execute the script only if not on Windows
             if platform.system() != "Windows":
                 subprocess.Popen(["sudo", "systemctl", "restart", "thai_school_alarm_web.service"])
+                time.sleep(5)
 
 
             # Return success response
