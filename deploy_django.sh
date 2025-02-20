@@ -23,6 +23,22 @@ find_available_port() {
 AVAILABLE_PORT=$(find_available_port)
 echo "Using port $AVAILABLE_PORT for Daphne"
 
+# Function to check if a required Python version is installed
+check_python_version() {
+    for version in 3.10 3.11; do
+        if command -v python$version &>/dev/null; then
+            echo "Using Python $version"
+            PYTHON_VERSION="python$version"
+            return
+        fi
+    done
+    echo "Python 3.10 or 3.11 not found. Please install one of these versions."
+    exit 1
+}
+
+# Check and set Python version
+check_python_version
+
 # 1. Install required packages
 echo "Installing required packages..."
 sudo apt update
@@ -51,7 +67,7 @@ cd $PROJECT_DIR
 
 # 3. Create and activate virtual environment
 echo "Setting up virtual environment..."
-python3 -m venv $VENV_DIR
+$PYTHON_VERSION -m venv $VENV_DIR
 source $VENV_DIR/bin/activate
 
 # 4. Install dependencies
