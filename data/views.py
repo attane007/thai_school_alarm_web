@@ -11,6 +11,7 @@ import json
 import time
 import math
 import secrets
+import re
 from data.function import get_wav_length
 from functools import wraps
 from decouple import Config,RepositoryEnv
@@ -276,6 +277,11 @@ def api_setup(request):
 
         if not domain:
             return JsonResponse({"error": "All fields are required."}, status=400)
+        
+        # Regex pattern for validating domain
+        domain_pattern = r"^(https?:\/\/)?(localhost|\d{1,3}(\.\d{1,3}){3}|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(:\d+)?$"
+        if not re.match(domain_pattern, domain):
+            return JsonResponse({"error": "Invalid domain format."}, status=400)
 
         # Generate a random Django SECRET_KEY
         secret_key = secrets.token_urlsafe(50)
