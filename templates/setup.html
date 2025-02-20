@@ -50,13 +50,12 @@
   <script>
     document.getElementById('setup_env_form').addEventListener('submit', async function (event) {
       const domainInput = document.getElementById('domain')
-      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value
       const domainError = document.getElementById('domainError')
       event.preventDefault() // Prevent form submission
     
       // Regex pattern for validating domain with http or https
-      const domainPattern = /^(http:\/\/|https:\/\/)(localhost|\d{1,3}(\.\d{1,3}){3}|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(:\d+)?$/;
-
+      const domainPattern = /^(http:\/\/|https:\/\/)(localhost|\d{1,3}(\.\d{1,3}){3}|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(:\d+)?$/
     
       if (!domainPattern.test(domainInput.value)) {
         domainError.style.display = 'block' // Show error message
@@ -64,34 +63,35 @@
       } else {
         domainError.style.display = 'none' // Hide error message
       }
-
-      domainError.style.display = 'none'; // Hide error message if valid
-
-    // Prepare form data
-    const formData = new FormData();
-    formData.append('domain', domainInput.value);
-
-    try {
-      // Send POST request to /api/setup
-      const response = await fetch('/api/setup/', {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrfToken },
-        body: formData
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert('Setup completed successfully!');
-        window.location.href = '/'; // Redirect after success
-      } else {
-        alert(`Error: ${result.error}`);
+    
+      domainError.style.display = 'none' // Hide error message if valid
+    
+      // Prepare form data
+      const formData = new FormData()
+      formData.append('domain', domainInput.value)
+    
+      try {
+        // Send POST request to /api/setup
+        const response = await fetch('/api/setup/', {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrfToken },
+          body: formData
+        })
+    
+        const result = await response.json()
+    
+        if (response.ok) {
+          alert('Setup completed successfully!')
+          setTimeout(() => {
+            window.location.href = '/'
+          }, 5000)
+        } else {
+          alert(`Error: ${result.error}`)
+        }
+      } catch (error) {
+        console.error('Error sending request:', error)
+        alert('An error occurred while processing your request.')
       }
-    } catch (error) {
-      console.error('Error sending request:', error);
-      alert('An error occurred while processing your request.');
-    }
-
     })
   </script>
 {% endblock %}
