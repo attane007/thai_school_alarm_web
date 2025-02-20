@@ -300,22 +300,9 @@
 
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
-    <!-- Bootstrap Modal HTML -->
-    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="updateModalLabel">New Update Available</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">A new version of the application is available. Please update to the latest version.</div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" id="updateButton">Update Now</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    {% block modal %}{% endblock modal %}
+  
+
     <!-- Vendor JS Files -->
     <script src="{% static 'assets/vendor/apexcharts/apexcharts.min.js' %}"></script>
     <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
@@ -343,51 +330,6 @@
             link.classList.remove('collapsed')
           }
         })
-      
-        // Fetch the current version from the Django API
-        fetch('/api/version/')
-          .then((response) => response.json())
-          .then((currentData) => {
-            const currentVersion = currentData.version // The version returned by Django API
-      
-            // Fetch the latest version from GitHub
-            fetch('https://raw.githubusercontent.com/attane007/thai_school_alarm_web/prod/version.json')
-              .then((response) => response.json())
-              .then((data) => {
-                const latestVersion = data.version // The version from GitHub
-                // Check if an update is available
-                if (latestVersion !== currentVersion) {
-                  const releaseDate = data.release_date // Release date from GitHub
-                  const changelog = data.changelog.join('<br>') // Changelog formatted for display
-                  // Update the modal body with the version details
-                  const modalBody = document.querySelector('#updateModal .modal-body')
-                  modalBody.innerHTML = `
-                                          <strong>New Version Available: ${latestVersion}</strong><br>
-                                          <strong>Release Date:</strong> ${releaseDate}<br><br>
-                                          <strong>Changelog:</strong><br>
-                                          ${changelog}
-                                                `
-      
-                  // Show the update modal if a new version is available
-                  const updateModal = new bootstrap.Modal(document.getElementById('updateModal'))
-                  updateModal.show()
-                } else {
-                  const latestVersion = currentData.version // The version from GitHub
-                  const releaseDate = currentData.release_date // Release date from GitHub
-                  const changelog = currentData.changelog.join('<br>') // Changelog formatted for display
-                  const modalBody = document.querySelector('#updateModal .modal-body')
-                  modalBody.innerHTML = `
-                                          <strong>New Version Available: ${latestVersion}</strong><br>
-                                          <strong>Release Date:</strong> ${releaseDate}<br><br>
-                                          <strong>Changelog:</strong><br>
-                                          ${changelog}
-                                                `
-                  console.log('same version')
-                }
-              })
-              .catch((error) => console.error('Error fetching GitHub version:', error))
-          })
-          .catch((error) => console.error('Error fetching current version:', error))
       })
     </script>
     <!-- Template Main JS File -->
