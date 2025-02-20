@@ -6,7 +6,7 @@ INITIAL_DIR=$(pwd)
 # Variables
 PROJECT_DIR="/var/www/thai_school_alarm_web"
 VENV_DIR="$PROJECT_DIR/.venv"
-SERVICE_NAME="django_daphne.service"
+SERVICE_NAME="thai_school_alarm_web.service"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
 START_PORT=8000
 
@@ -42,7 +42,7 @@ check_python_version
 # 1. Install required packages
 echo "Installing required packages..."
 sudo apt update
-sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential
+sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential libsqlite3-dev
 
 # Ensure /var/www exists and set correct ownership
 if [ ! -d "/var/www" ]; then
