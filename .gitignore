@@ -12,3 +12,4 @@ debug.log
 .env
 /env
 staticfiles
+.venv_linux/
