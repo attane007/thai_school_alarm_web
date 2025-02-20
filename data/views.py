@@ -284,7 +284,7 @@ def api_setup(request):
             return JsonResponse({"error": "All fields are required."}, status=400)
         
         # Regex pattern for validating domain
-        domain_pattern = r"^(https?:\/\/)?(localhost|\d{1,3}(\.\d{1,3}){3}|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(:\d+)?$"
+        domain_pattern = r"^(http:\/\/|https:\/\/)(localhost|\d{1,3}(\.\d{1,3}){3}|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(:\d+)?$"
         if not re.match(domain_pattern, domain):
             return JsonResponse({"error": "Invalid domain format."}, status=400)
         
@@ -295,13 +295,15 @@ def api_setup(request):
 
         # Generate a random Django SECRET_KEY
         secret_key = secrets.token_urlsafe(50)
+        domain_no_port = re.sub(r"^(http:\/\/|https:\/\/)", "", domain) # Remove protocol
+        domain_no_port = re.sub(r":\d+$", "", domain_no_port) # Remove port
 
         # Create and write to .env file
         try:
             with open(ENV_PATH, "w") as env_file:
                 env_file.write(f"SECRET_KEY={secret_key}\n")
                 env_file.write(f"DEBUG=False\n")
-                env_file.write(f"ALLOWED_HOSTS={domain}\n")
+                env_file.write(f"ALLOWED_HOSTS={domain_no_port}\n")
                 env_file.write(f"CSRF_TRUSTED_ORIGINS={domain}\n")
 
             # Execute the script only if not on Windows
