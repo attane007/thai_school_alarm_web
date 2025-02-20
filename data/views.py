@@ -313,7 +313,7 @@ def api_setup(request):
                 #     return JsonResponse({"error": f"Script not found at {SCRIPT_PATH}"}, status=500)
                 # subprocess.run(["chmod", "+x", SCRIPT_PATH], check=True)
                 # result = subprocess.run(["/bin/bash", SCRIPT_PATH], capture_output=True, text=True)
-                subprocess.run(["sudo", "systemctl", "restart", "thai_school_alarm_web.service"])
+                subprocess.Popen(["sudo", "systemctl", "restart", "thai_school_alarm_web.service"])
 
 
             # Return success response
