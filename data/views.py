@@ -309,10 +309,12 @@ def api_setup(request):
             # Execute the script only if not on Windows
             print(SCRIPT_PATH)
             if platform.system() != "Windows":
-                if not os.path.exists(SCRIPT_PATH):
-                    return JsonResponse({"error": f"Script not found at {SCRIPT_PATH}"}, status=500)
-                subprocess.run(["chmod", "+x", SCRIPT_PATH], check=True)
-                result = subprocess.run(["/bin/bash", SCRIPT_PATH], capture_output=True, text=True)
+                # if not os.path.exists(SCRIPT_PATH):
+                #     return JsonResponse({"error": f"Script not found at {SCRIPT_PATH}"}, status=500)
+                # subprocess.run(["chmod", "+x", SCRIPT_PATH], check=True)
+                # result = subprocess.run(["/bin/bash", SCRIPT_PATH], capture_output=True, text=True)
+                subprocess.run(["sudo", "systemctl", "restart", "thai_school_alarm_web.service"])
+
 
             # Return success response
             return JsonResponse({"message": "Setup completed successfully."}, status=200)
