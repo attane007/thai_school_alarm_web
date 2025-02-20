@@ -121,3 +121,4 @@ sudo systemctl restart $SERVICE_NAME
 # Return to the original directory
 cd "$INITIAL_DIR"
 echo "Returned to $INITIAL_DIR"
+echo "Using port $AVAILABLE_PORT for Daphne"
