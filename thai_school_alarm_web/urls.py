@@ -27,10 +27,12 @@ urlpatterns = [
     path("speech",views.text_to_speech),
     path("sound",views.sound),
     path("setting",views.setting),
+    path("setup",views.setup),
     path("delete_audio/<int:audio_id>/",views.delete_audio),
     path("play_audio/<int:audio_id>/",views.play_audio),
     path("create_audio",views.create_audio),
-    path("add_voice_api_key",views.add_voice_api_key)
+    path("add_voice_api_key",views.add_voice_api_key),
+    path("api/setup/",views.api_setup),
 ]
 
 if settings.DEBUG:

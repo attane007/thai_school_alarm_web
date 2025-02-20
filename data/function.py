@@ -1,5 +1,6 @@
 
 import wave
+import subprocess
 
 def get_wav_length(file_path):
     with wave.open(file_path, 'rb') as wav_file:

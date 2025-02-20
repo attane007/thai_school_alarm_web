@@ -1,4 +1,4 @@
-from django.shortcuts import render,get_object_or_404
+from django.shortcuts import render,get_object_or_404,redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from data.models import Audio, Day, Bell, Schedule, Utility
@@ -10,9 +10,37 @@ import shutil
 import json
 import time
 import math
+import secrets
 from data.function import get_wav_length
+from functools import wraps
+from decouple import Config,RepositoryEnv
+
+def check_env_file(view_func):
+    """Decorator to check if the .env file exists and required variables are set."""
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+        print(env_path)
+
+        if not os.path.exists(env_path):
+            return redirect('/setup')  # Redirect to setup page if .env is missing
+
+        config = Config(RepositoryEnv(env_path))
+
+        # Define required environment variables
+        required_vars = ["DEBUG", "SECRET_KEY","ALLOWED_HOSTS","CSRF_TRUSTED_ORIGINS"]  # Add more required keys if needed
+        missing_vars = [var for var in required_vars if not config(var, default=None)]
+
+        if missing_vars:
+            print("missing var")
+            return redirect('/setup')  # Redirect if required variables are missing
+
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view
 
 #template zone
+@check_env_file
 def index(request):
     audios = Audio.objects.all()
     days = Day.objects.all()
@@ -91,6 +119,8 @@ def setting(request):
     }
     return render(request, 'setting.html', context)
 
+def setup(request):
+    return render(request, "setup.html")
 
 # API zone
 
@@ -236,3 +266,29 @@ def add_voice_api_key(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
+@require_http_methods(["POST"])
+def api_setup(request):
+    ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+
+    """Handles the setup process for generating the .env file."""
+    if request.method == "POST":
+        domain = request.POST.get("domain")
+
+        if not domain:
+            return JsonResponse({"error": "All fields are required."}, status=400)
+
+        # Generate a random Django SECRET_KEY
+        secret_key = secrets.token_urlsafe(50)
+
+        # Create and write to .env file
+        try:
+            with open(ENV_PATH, "w") as env_file:
+                env_file.write(f"SECRET_KEY={secret_key}\n")
+                env_file.write(f"DEBUG=False\n")
+                env_file.write(f"ALLOWED_HOSTS={domain}\n")
+                env_file.write(f"CSRF_TRUSTED_ORIGINS={domain}\n")
+
+            # Return success response
+            return JsonResponse({"message": "Setup completed successfully."}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
