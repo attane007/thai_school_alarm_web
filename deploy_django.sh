@@ -89,9 +89,13 @@ python3 manage.py collectstatic --noinput
 echo "Applying migrations..."
 python3 manage.py migrate
 
-# 7. Create a systemd service for Daphne
-echo "Creating systemd service..."
+# Remove old service file if it exists
+if [ -f "$SERVICE_FILE" ]; then
+    echo "Removing existing service file..."
+    sudo rm -f "$SERVICE_FILE"
+fi
 
+# Create the new service file
 sudo bash -c "cat > $SERVICE_FILE" <<EOF
 [Unit]
 Description=Thai School Alarm Service
@@ -108,7 +112,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-# 6. Reload systemd, enable and start the service
+# 8. Reload systemd, enable and start the service
 echo "Reloading systemd and enabling service..."
 sudo systemctl daemon-reload
 sudo systemctl enable $SERVICE_NAME
