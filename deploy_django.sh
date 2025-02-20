@@ -94,7 +94,7 @@ echo "Creating systemd service..."
 
 sudo bash -c "cat > $SERVICE_FILE" <<EOF
 [Unit]
-Description=Django Daphne Service
+Description=Thai School Alarm Service
 After=network.target
 
 [Service]
