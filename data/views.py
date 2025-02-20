@@ -300,11 +300,11 @@ def api_setup(request):
 
         # Create and write to .env file
         try:
-            with open(ENV_PATH, "w") as env_file:
-                env_file.write(f"SECRET_KEY={secret_key}\n")
-                env_file.write(f"DEBUG=False\n")
-                env_file.write(f"ALLOWED_HOSTS={domain_no_port}\n")
-                env_file.write(f"CSRF_TRUSTED_ORIGINS={domain}\n")
+            # with open(ENV_PATH, "w") as env_file:
+            #     env_file.write(f"SECRET_KEY={secret_key}\n")
+            #     env_file.write(f"DEBUG=False\n")
+            #     env_file.write(f"ALLOWED_HOSTS={domain_no_port}\n")
+            #     env_file.write(f"CSRF_TRUSTED_ORIGINS={domain}\n")
 
             # Execute the script only if not on Windows
             print(SCRIPT_PATH)
