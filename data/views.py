@@ -1,6 +1,7 @@
 from django.shortcuts import render,get_object_or_404,redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from data.models import Audio, Day, Bell, Schedule, Utility
 from datetime import datetime
 from data.tasks import play_sound,check_schedule
@@ -269,6 +270,7 @@ def add_voice_api_key(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON data'}, status=400)
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def api_setup(request):
     ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
@@ -285,6 +287,11 @@ def api_setup(request):
         domain_pattern = r"^(https?:\/\/)?(localhost|\d{1,3}(\.\d{1,3}){3}|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(:\d+)?$"
         if not re.match(domain_pattern, domain):
             return JsonResponse({"error": "Invalid domain format."}, status=400)
+        
+        """Handles the setup process for generating the .env file."""
+        domain = request.POST.get("domain")
+        if not domain:
+            return JsonResponse({"error": "All fields are required."}, status=400)
 
         # Generate a random Django SECRET_KEY
         secret_key = secrets.token_urlsafe(50)
