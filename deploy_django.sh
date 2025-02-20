@@ -25,7 +25,7 @@ echo "Using port $AVAILABLE_PORT for Daphne"
 
 # Function to check if a required Python version is installed
 check_python_version() {
-    for version in 3.10 3.11; do
+    for version in 3.10 3.11 3.12; do
         if command -v python$version &>/dev/null; then
             echo "Using Python $version"
             PYTHON_VERSION="python$version"
