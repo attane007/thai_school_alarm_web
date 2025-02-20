@@ -15,7 +15,7 @@ import secrets
 import re
 import subprocess
 import platform
-import asyncio
+import threading
 from data.function import get_wav_length
 from functools import wraps
 from decouple import Config,RepositoryEnv
@@ -273,7 +273,7 @@ def add_voice_api_key(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-async def api_setup(request):
+def api_setup(request):
     ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 
     """Handles the setup process for generating the .env file."""
@@ -310,7 +310,6 @@ async def api_setup(request):
             if platform.system() != "Windows":
                 subprocess.Popen(["sudo", "systemctl", "restart", "thai_school_alarm_web.service"])
 
-            await asyncio.sleep(5)
             # Return success response
             return JsonResponse({"message": "Setup completed successfully."}, status=200)
         except Exception as e:
