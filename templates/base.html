@@ -432,11 +432,12 @@
           fetch('/api/update/')
             .then(response => response.json())
             .then(data => {
-              // แสดง process ID จากการตอบกลับ
-              console.log('Process ID:', data.process_id);
         
               // คุณสามารถแสดงข้อความหรือตามสถานะที่ต้องการ
               alert('Update in progress. Process ID: ' + data.process_id);
+
+              // Save process_id to localStorage
+              localStorage.setItem('process_id', data.process_id);
         
               // อัพเดตปุ่มหลังจากคำขอสำเร็จ
               this.disabled = false;
@@ -450,6 +451,8 @@
               this.innerHTML = '<i class="bx bxs-cloud-download"></i> Update Now';
             });
         });
+
+        
         
     </script>
     {% block js %}
