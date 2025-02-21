@@ -208,9 +208,9 @@
           <!-- End Messages Nav --> {% endcomment %}
 
           <li class="nav-item pe-3">
-            <a class="nav-link nav-icon" href="#" data-bs-toggle="modal" data-bs-target="#updateModal">
-              <i class="bx bxs-cloud-download"></i>
-              อัพเดต
+            <a class="nav-link nav-icon" href="#" data-bs-toggle="modal" data-bs-target="#updateModal" title="อัพเดต">
+              <i class="bx bxs-cloud-download fs-4"></i>
+              <span id="update-badge" class="badge bg-danger badge-number d-none">1</span>
             </a>
           </li>
 
@@ -380,6 +380,8 @@
                   // Save the current version to localStorage to prevent showing the modal again for the same update
                   localStorage.setItem('lastUpdateVersion', latestVersion)
                 }
+
+                document.getElementById("update-badge").classList.remove("d-none");
               } else {
                 const latestVersion = currentData.version // The version from GitHub
                 const releaseDate = currentData.release_date // Release date from GitHub

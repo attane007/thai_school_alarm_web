@@ -126,6 +126,10 @@ def setting(request):
     return render(request, 'setting.html', context)
 
 def setup(request):
+    ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    if os.path.exists(ENV_PATH):
+        return redirect("/")  
+    
     return render(request, "setup.html")
 
 # API zone
