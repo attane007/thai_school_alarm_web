@@ -35,6 +35,7 @@ urlpatterns = [
     path("api/setup/",views.api_setup),
     path('api/version/', views.get_current_version, name='get_current_version'),
     path('api/update/', views.api_update),
+    path('api/process/<str:process_id>/', views.api_process),
 ]
 
 if settings.DEBUG:

@@ -1,5 +1,5 @@
 from django.shortcuts import render,get_object_or_404,redirect
-from django.http import JsonResponse
+from django.http import JsonResponse,StreamingHttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from data.models import Audio, Day, Bell, Schedule, Utility
@@ -15,7 +15,6 @@ import secrets
 import re
 import subprocess
 import platform
-import threading
 from data.function import get_wav_length
 from functools import wraps
 from decouple import Config,RepositoryEnv
@@ -365,11 +364,50 @@ def get_current_version(request):
 @require_http_methods(["GET"])
 def api_update(request):
     try:
-        # รันคำสั่ง `ls -l` ใน subprocess
-        process = subprocess.Popen(["ls", "-l"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        
-        # คืนค่าผลลัพธ์ JSON พร้อมกับ process ID
+        # ตรวจสอบว่าเป็นระบบปฏิบัติการ Windows หรือไม่
+        if platform.system() == 'Windows':
+            # ใช้คำสั่ง 'dir' บน Windows
+            process = subprocess.Popen(["dir"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+        else:
+            # ใช้คำสั่ง 'ls -l' บนระบบ Unix (Linux/macOS)
+            process = subprocess.Popen(["ls", "-l"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # คืนค่า process ID ในการตอบกลับ
         return JsonResponse({"process_id": process.pid}, status=200)
     except Exception as e:
-        # ถ้ามีข้อผิดพลาดเกิดขึ้น จะถูกจับที่นี่
+        # หากเกิดข้อผิดพลาด จะถูกจับที่นี่
+        return JsonResponse({"error": str(e)}, status=500)
+
+@require_http_methods(["GET"])
+def api_process(request, process_id):
+    try:
+        # Define a generator function to stream the process output
+        def stream_process_output(process_id):
+            # Check if the system is Windows or Unix
+            if platform.system() == 'Windows':
+                # ใช้คำสั่ง 'tasklist' หรือ 'wmic' เพื่อดึงข้อมูลโปรเซส
+                command = ["tasklist", "/FI", f"PID eq {process_id}"]
+            else:
+                # ใช้คำสั่ง 'ps' บน Linux/macOS
+                command = ["ps", "-p", str(process_id), "-o", "stat="]
+            
+            # Run the process with subprocess and stream the output
+            with subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            ) as process:
+                for line in process.stdout:
+                    yield line  # Yield output as it's produced
+                
+                # Handle potential errors from stderr
+                for err_line in process.stderr:
+                    yield f"Error: {err_line}"
+
+        # Create a StreamingHttpResponse to stream the process output
+        response = StreamingHttpResponse(stream_process_output(process_id), content_type="text/plain")
+        return response
+        
+    except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)

@@ -321,7 +321,7 @@
     </div>
 
     <!-- Bootstrap Modal HTML -->
-    <div class="modal fade" id="terminalModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal fade" id="terminalModal" tabindex="-1" aria-labelledby="terminalModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
@@ -390,10 +390,10 @@
                 // Update the modal body with the version details
                 const modalBody = document.querySelector('#updateModal .modal-body')
                 modalBody.innerHTML = ` <strong>New Version Available: ${latestVersion}</strong><br>
-                                                    <strong>Release Date:</strong> ${releaseDate}<br><br>
-                                                    <strong>Changelog:</strong><br>
-                                                    ${changelog}
-                                                          `
+                                        <strong>Release Date:</strong> ${releaseDate}<br><br>
+                                        <strong>Changelog:</strong><br>
+                                        ${changelog}
+                                              `
       
                 // Show the update modal if a new version is available
                 document.getElementById('updateButton').disabled = false
@@ -405,16 +405,16 @@
                   localStorage.setItem('lastUpdateVersion', latestVersion)
                 }
       
-                document.getElementById('update-badge').classList.remove('d-none')
+                document.getElementById('update-badge').classList.remove('d-none')                
               } else {
                 const latestVersion = currentData.version // The version from GitHub
                 const releaseDate = currentData.release_date // Release date from GitHub
                 const changelog = currentData.changelog.join('<br>') // Changelog formatted for display
                 const modalBody = document.querySelector('#updateModal .modal-body')
                 modalBody.innerHTML = `<strong>New Version Available: ${latestVersion}</strong><br>
-                                                    <strong>Release Date:</strong> ${releaseDate}<br><br>
-                                                    <strong>Changelog:</strong><br>
-                                                    ${changelog}
+                                        <strong>Release Date:</strong> ${releaseDate}<br><br>
+                                        <strong>Changelog:</strong><br>
+                                        ${changelog}
                                                           `
                 console.log('same version')
               }
@@ -439,6 +439,7 @@
               // อัพเดตปุ่มหลังจากคำขอสำเร็จ
               this.disabled = false;
               this.innerHTML = '<i class="bx bxs-cloud-download"></i> Update Now';
+              get_process();
             })
             .catch((error) => {
               console.error('Error:', error);
@@ -449,7 +450,48 @@
             });
         });
 
-        
+
+        function get_process(){
+          const processId = localStorage.getItem("process_id");
+          const terminalOutput = document.getElementById('terminalOutput');
+          terminalOutput.textContent = 'Loading...';
+          if (processId) {  
+            // Fetch streamed process data
+            fetch(`/api/process/${processId}/`)
+                .then(response => {
+                  const reader = response.body.getReader();
+                  const decoder = new TextDecoder();
+                  const stream = new ReadableStream({
+                    start(controller) {
+                      function push() {
+                        reader.read().then(({ done, value }) => {
+                          if (done) {
+                            controller.close();
+                            return;
+                          }
+                          // Decode the chunk and append to the terminal output
+                          terminalOutput.textContent += decoder.decode(value, { stream: true });
+                          controller.enqueue(value);
+                          push();
+                        }).catch(err => {
+                          controller.error(err);
+                        });
+                      }
+            
+                      push();
+                    }
+                  });
+            
+                  // Consume the stream
+                  new Response(stream).text();
+
+                });
+        } else {
+            console.error("No process ID found in localStorage");
+        }
+        }
+
+        get_process();
         
     </script>
     {% block js %}
