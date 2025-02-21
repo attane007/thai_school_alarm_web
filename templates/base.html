@@ -32,13 +32,13 @@
     <!-- Template Main CSS File -->
     <link href="{% static 'assets/css/style.css' %}" rel="stylesheet" />
 
-    <!--            =======================================================
+    <!--              =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Updated: Apr 20 2024 with Bootstrap v5.3.3
   * Author: BootstrapMade.com
   * License: https://bootstrapmade.com/license/
-  ========================================================            -->
+  ========================================================              -->
   </head>
 
   <body>
@@ -207,7 +207,11 @@
           </li>
           <!-- End Messages Nav --> {% endcomment %}
 
-          <li class="nav-item pe-3">
+          <li class="nav-item">
+            <a class="nav-link nav-icon" href="#" data-bs-toggle="modal" data-bs-target="#terminalModal" title="terminal"><i class="bx bxs-terminal fs-4"></i></a>
+          </li>
+
+          <li class="nav-item">
             <a class="nav-link nav-icon" href="#" data-bs-toggle="modal" data-bs-target="#updateModal" title="อัพเดต">
               <i class="bx bxs-cloud-download fs-4"></i>
               <span id="update-badge" class="badge bg-danger badge-number d-none">1</span>
@@ -310,7 +314,24 @@
           </div>
           <div class="modal-body">No update available</div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary" id="updateButton" disabled>Update Now</button>
+            <button type="button" class="btn btn-primary" id="updateButton" disabled><i class='bx bxs-cloud-download'></i> Update Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap Modal HTML -->
+    <div class="modal fade" id="terminalModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="updateModalLabel">Terminal</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <pre class="bg-dark text-light p-3 rounded">
+              <code id="terminalOutput">Loading...</code>
+            </pre>
           </div>
         </div>
       </div>
@@ -328,6 +349,9 @@
     <script src="{% static 'assets/vendor/tinymce/tinymce.min.js' %}"></script>
     <script src="{% static 'assets/vendor/php-email-form/validate.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+    
+    <!-- Template Main JS File -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
 
     <script>
       function handleFormSubmit(event) {
@@ -366,10 +390,10 @@
                 // Update the modal body with the version details
                 const modalBody = document.querySelector('#updateModal .modal-body')
                 modalBody.innerHTML = ` <strong>New Version Available: ${latestVersion}</strong><br>
-                                        <strong>Release Date:</strong> ${releaseDate}<br><br>
-                                        <strong>Changelog:</strong><br>
-                                        ${changelog}
-                                              `
+                                                    <strong>Release Date:</strong> ${releaseDate}<br><br>
+                                                    <strong>Changelog:</strong><br>
+                                                    ${changelog}
+                                                          `
       
                 // Show the update modal if a new version is available
                 document.getElementById('updateButton').disabled = false
@@ -380,27 +404,54 @@
                   // Save the current version to localStorage to prevent showing the modal again for the same update
                   localStorage.setItem('lastUpdateVersion', latestVersion)
                 }
-
-                document.getElementById("update-badge").classList.remove("d-none");
+      
+                document.getElementById('update-badge').classList.remove('d-none')
               } else {
                 const latestVersion = currentData.version // The version from GitHub
                 const releaseDate = currentData.release_date // Release date from GitHub
                 const changelog = currentData.changelog.join('<br>') // Changelog formatted for display
                 const modalBody = document.querySelector('#updateModal .modal-body')
                 modalBody.innerHTML = `<strong>New Version Available: ${latestVersion}</strong><br>
-                                        <strong>Release Date:</strong> ${releaseDate}<br><br>
-                                        <strong>Changelog:</strong><br>
-                                        ${changelog}
-                                              `
+                                                    <strong>Release Date:</strong> ${releaseDate}<br><br>
+                                                    <strong>Changelog:</strong><br>
+                                                    ${changelog}
+                                                          `
                 console.log('same version')
               }
             })
             .catch((error) => console.error('Error fetching GitHub version:', error))
         })
         .catch((error) => console.error('Error fetching current version:', error))
+
+        document.getElementById('updateButton').addEventListener('click', function() {
+          // Disable button while request is being processed
+          this.disabled = true;
+          this.innerHTML = 'Updating...';
+        
+          // ส่งคำขอไปที่ API /api/update/
+          fetch('/api/update/')
+            .then(response => response.json())
+            .then(data => {
+              // แสดง process ID จากการตอบกลับ
+              console.log('Process ID:', data.process_id);
+        
+              // คุณสามารถแสดงข้อความหรือตามสถานะที่ต้องการ
+              alert('Update in progress. Process ID: ' + data.process_id);
+        
+              // อัพเดตปุ่มหลังจากคำขอสำเร็จ
+              this.disabled = false;
+              this.innerHTML = '<i class="bx bxs-cloud-download"></i> Update Now';
+            })
+            .catch((error) => {
+              console.error('Error:', error);
+              
+              // คืนสถานะของปุ่มถ้ามีข้อผิดพลาด
+              this.disabled = false;
+              this.innerHTML = '<i class="bx bxs-cloud-download"></i> Update Now';
+            });
+        });
+        
     </script>
-    <!-- Template Main JS File -->
-    <script src="{% static 'assets/js/main.js' %}"></script>
     {% block js %}
 
     {% endblock %}

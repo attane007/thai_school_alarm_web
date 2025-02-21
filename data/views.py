@@ -361,3 +361,15 @@ def get_current_version(request):
         return JsonResponse({"error": "Error parsing version.json"}, status=500)
 
     return JsonResponse({"version": current_version})
+
+@require_http_methods(["GET"])
+def api_update(request):
+    try:
+        # รันคำสั่ง `ls -l` ใน subprocess
+        process = subprocess.Popen(["ls", "-l"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # คืนค่าผลลัพธ์ JSON พร้อมกับ process ID
+        return JsonResponse({"process_id": process.pid}, status=200)
+    except Exception as e:
+        # ถ้ามีข้อผิดพลาดเกิดขึ้น จะถูกจับที่นี่
+        return JsonResponse({"error": str(e)}, status=500)
