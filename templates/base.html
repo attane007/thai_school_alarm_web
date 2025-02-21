@@ -432,9 +432,6 @@
           fetch('/api/update/')
             .then(response => response.json())
             .then(data => {
-        
-              // คุณสามารถแสดงข้อความหรือตามสถานะที่ต้องการ
-              alert('Update in progress. Process ID: ' + data.process_id);
 
               // Save process_id to localStorage
               localStorage.setItem('process_id', data.process_id);
