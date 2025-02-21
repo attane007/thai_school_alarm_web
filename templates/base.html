@@ -32,13 +32,13 @@
     <!-- Template Main CSS File -->
     <link href="{% static 'assets/css/style.css' %}" rel="stylesheet" />
 
-    <!--          =======================================================
+    <!--            =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Updated: Apr 20 2024 with Bootstrap v5.3.3
   * Author: BootstrapMade.com
   * License: https://bootstrapmade.com/license/
-  ========================================================          -->
+  ========================================================            -->
   </head>
 
   <body>
@@ -300,8 +300,24 @@
 
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
-    {% block modal %}{% endblock modal %}
-  
+    <!-- Bootstrap Modal HTML -->
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="updateModalLabel">New Update Available</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">No update available</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="updateButton" disabled>Update Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% block modal %}
+
+    {% endblock %}
 
     <!-- Vendor JS Files -->
     <script src="{% static 'assets/vendor/apexcharts/apexcharts.min.js' %}"></script>
@@ -331,6 +347,57 @@
           }
         })
       })
+      
+      // Fetch the current version from the Django API
+      fetch('/api/version/')
+        .then((response) => response.json())
+        .then((currentData) => {
+          const currentVersion = currentData.version // The version returned by Django API
+      
+          // Fetch the latest version from GitHub
+          fetch('https://raw.githubusercontent.com/attane007/thai_school_alarm_web/prod/version.json')
+            .then((response) => response.json())
+            .then((data) => {
+              const latestVersion = data.version // The version from GitHub
+              // Check if an update is available
+              if (latestVersion !== currentVersion) {
+                const releaseDate = data.release_date // Release date from GitHub
+                const changelog = data.changelog.join('<br>') // Changelog formatted for display
+                // Update the modal body with the version details
+                const modalBody = document.querySelector('#updateModal .modal-body')
+                modalBody.innerHTML = `
+                                        <strong>New Version Available: ${latestVersion}</strong><br>
+                                        <strong>Release Date:</strong> ${releaseDate}<br><br>
+                                        <strong>Changelog:</strong><br>
+                                        ${changelog}
+                                              `
+      
+                // Show the update modal if a new version is available
+                document.getElementById('updateButton').disabled = false
+                const updateModal = new bootstrap.Modal(document.getElementById('updateModal'))
+                // Check if the modal has already been shown (to prevent multiple shows for the same update)
+                if (!localStorage.getItem('lastUpdateVersion') || localStorage.getItem('lastUpdateVersion') !== latestVersion) {
+                  updateModal.show()
+                  // Save the current version to localStorage to prevent showing the modal again for the same update
+                  localStorage.setItem('lastUpdateVersion', latestVersion)
+                }
+              } else {
+                const latestVersion = currentData.version // The version from GitHub
+                const releaseDate = currentData.release_date // Release date from GitHub
+                const changelog = currentData.changelog.join('<br>') // Changelog formatted for display
+                const modalBody = document.querySelector('#updateModal .modal-body')
+                modalBody.innerHTML = `
+                                        <strong>New Version Available: ${latestVersion}</strong><br>
+                                        <strong>Release Date:</strong> ${releaseDate}<br><br>
+                                        <strong>Changelog:</strong><br>
+                                        ${changelog}
+                                              `
+                console.log('same version')
+              }
+            })
+            .catch((error) => console.error('Error fetching GitHub version:', error))
+        })
+        .catch((error) => console.error('Error fetching current version:', error))
     </script>
     <!-- Template Main JS File -->
     <script src="{% static 'assets/js/main.js' %}"></script>
