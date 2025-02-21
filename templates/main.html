@@ -363,8 +363,12 @@ document.getElementById('speech_form').addEventListener('submit', function(event
   })
   .then(response => response.json())
   .then(data => {
-      // Handle the response data
-      console.log('Success:', data);
+    if (data.error) {
+      // If the response contains an error, show an alert
+      alert('Error: ' + data.error);
+    } else {
+        console.log('Success:', data);
+    }
   })
   .catch((error) => {
       console.error('Error:', error);
