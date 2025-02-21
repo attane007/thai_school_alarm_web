@@ -365,8 +365,7 @@
                 const changelog = data.changelog.join('<br>') // Changelog formatted for display
                 // Update the modal body with the version details
                 const modalBody = document.querySelector('#updateModal .modal-body')
-                modalBody.innerHTML = `
-                                        <strong>New Version Available: ${latestVersion}</strong><br>
+                modalBody.innerHTML = ` <strong>New Version Available: ${latestVersion}</strong><br>
                                         <strong>Release Date:</strong> ${releaseDate}<br><br>
                                         <strong>Changelog:</strong><br>
                                         ${changelog}
@@ -386,8 +385,7 @@
                 const releaseDate = currentData.release_date // Release date from GitHub
                 const changelog = currentData.changelog.join('<br>') // Changelog formatted for display
                 const modalBody = document.querySelector('#updateModal .modal-body')
-                modalBody.innerHTML = `
-                                        <strong>New Version Available: ${latestVersion}</strong><br>
+                modalBody.innerHTML = `<strong>New Version Available: ${latestVersion}</strong><br>
                                         <strong>Release Date:</strong> ${releaseDate}<br><br>
                                         <strong>Changelog:</strong><br>
                                         ${changelog}

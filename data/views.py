@@ -210,16 +210,39 @@ def text_to_speech(request):
         input_text = data.get('text')
     except:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    voice_api_key=Utility.objects.get(name="voice_api_key")
-    Apikey=voice_api_key.value
-    url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual'
-    headers = {'Apikey':Apikey,'Content-Type' : 'application/json'}
-    text = input_text
-    data = {'input_text':text,'speaker': 1, 'phrase_break':0, 'audiovisual':0}
-    response = requests.post(url, json=data, headers=headers)
-    durations=response.json().get('durations')
-    rounded_duration = math.ceil(durations)
-    rounded_duration=rounded_duration+10
+    
+    try:
+        # Retrieve API key from the database
+        voice_api_key = Utility.objects.get(name="voice_api_key")
+        Apikey = voice_api_key.value
+    except Utility.DoesNotExist:
+        # Catch if the key does not exist in the database
+        return JsonResponse({'error': 'API key not found in the database'}, status=500)
+    except Exception as e:
+        # General exception for any other database errors
+        return JsonResponse({'error': f'Error fetching API key: {str(e)}'}, status=500)
+    
+    try:
+        url = 'https://api.aiforthai.in.th/vaja9/synth_audiovisual'
+        headers = {'Apikey':Apikey,'Content-Type' : 'application/json'}
+        text = input_text
+        data = {'input_text':text,'speaker': 1, 'phrase_break':0, 'audiovisual':0}
+        response = requests.post(url, json=data, headers=headers)
+        durations=response.json().get('durations')
+        if not durations:
+            return JsonResponse({'error': 'No durations received in the response'}, status=500)
+        rounded_duration = math.ceil(durations)
+        rounded_duration=rounded_duration+10
+    
+    except requests.exceptions.RequestException as e:
+        # Catch errors related to the HTTP request (e.g., network issues)
+        return JsonResponse({'error': f'Request failed: {str(e)}'}, status=500)
+    except ValueError:
+        # Catch errors if the response is not in JSON format
+        return JsonResponse({'error': 'Invalid response format from the API'}, status=500)
+    except Exception as e:
+        # General exception for any other errors in this block
+        return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
     
     time.sleep(1)
     if response.status_code == 200:
