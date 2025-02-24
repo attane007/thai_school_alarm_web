@@ -13,6 +13,7 @@ import time
 import math
 import secrets
 import re
+import sys
 import subprocess
 import platform
 from data.function import get_wav_length
@@ -344,22 +345,77 @@ def api_setup(request):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
+
+
 @require_http_methods(["GET"])
 def get_current_version(request):
-    # Get the path to the version.json file
+    # Local version.json path
     version_file_path = os.path.join(settings.BASE_DIR, 'version.json')
 
     try:
-        # Open and read the version.json file
+        # Read the local version.json
         with open(version_file_path, 'r') as version_file:
-            version_data = json.load(version_file)
-            current_version = version_data.get('version', 'Unknown')
-    except FileNotFoundError:
-        return JsonResponse({"error": "version.json not found"}, status=404)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Error parsing version.json"}, status=500)
+            local_data = json.load(version_file)
+            current_version = local_data.get('version', 'Unknown')
+            supported_python_versions = local_data.get('python_version', [])
+    except (FileNotFoundError, json.JSONDecodeError):
+        return JsonResponse({"error": "Failed to read local version.json"}, status=500)
 
-    return JsonResponse({"version": current_version})
+    # Get the currently running Python version
+    current_python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+
+    # URL of the latest version.json on GitHub
+    latest_version_url = "https://raw.githubusercontent.com/attane007/thai_school_alarm_web/prod/version.json"
+
+    try:
+        # Fetch latest version.json from GitHub
+        response = requests.get(latest_version_url, timeout=5)
+        response.raise_for_status()
+        latest_data = response.json()
+
+        latest_version = latest_data.get('version', 'Unknown')
+        release_date = latest_data.get('release_date', 'Unknown')
+        changelog = latest_data.get('changelog', [])
+        latest_supported_python_versions = latest_data.get('python_version', [])
+    except requests.exceptions.RequestException:
+        return JsonResponse({
+            "version": current_version,
+            "latest_version": "Unknown",
+            "update_available": False,
+            "release_date": "Unknown",
+            "changelog": [],
+            "current_python_version": current_python_version,
+            "compatible_python": "Unknown"
+        }, status=500)
+
+    # Check if an update is available
+    update_available = current_version != latest_version
+
+    # Fix: Check Python version compatibility properly
+    def is_python_version_compatible(version_range):
+        """Check if the current Python version falls within a given range."""
+        parts = version_range.split(" - ")
+        if len(parts) == 2:
+            # Range case: "3.10.16 - 3.12"
+            min_version, max_version = parts
+            return min_version <= current_python_version <= max_version
+        elif len(parts) == 1:
+            # Single version case: "3.10.16"
+            return current_python_version.startswith(parts[0])
+        return False
+
+    compatible_python = any(is_python_version_compatible(version) for version in latest_supported_python_versions)
+
+    return JsonResponse({
+        "version": current_version,
+        "latest_version": latest_version,
+        "update_available": update_available,
+        "release_date": release_date,
+        "changelog": changelog,
+        "current_python_version": current_python_version,
+        "compatible_python": compatible_python
+    })
+
 
 @require_http_methods(["GET"])
 def api_update(request):
