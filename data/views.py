@@ -418,41 +418,23 @@ def get_current_version(request):
 
 
 STATUS_FILE = "process_status.json"
+SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "scripts/update_script.sh")
 
 @require_http_methods(["GET"])
 def api_update(request):
-
     if platform.system() == "Windows":
         return JsonResponse({"error": "Windows is not supported"}, status=400)
-    
+
     try:
-        git_command = ["git", "pull", "origin", "prod"]
-        process = subprocess.Popen(git_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        # รัน shell script
+        process = subprocess.Popen(
+            [SCRIPT_PATH], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True
+        )
 
-        # อ่านข้อมูลเก่าจากไฟล์ (ถ้ามี)
-        if os.path.exists(STATUS_FILE):
-            with open(STATUS_FILE, "r") as f:
-                try:
-                    status_data = json.load(f)
-                except json.JSONDecodeError:
-                    status_data = []
-        else:
-            status_data = []
-
-        # เพิ่ม process ใหม่ลงในรายการ
-        new_process = {
-            "process_id": process.pid,
-            "status": "running",
-            "output": "",
-            "error": ""
-        }
-        status_data.append(new_process)
-
-        # เขียนกลับไปที่ไฟล์
-        with open(STATUS_FILE, "w") as f:
-            json.dump(status_data, f, indent=4)
-
-        return JsonResponse({"message": "Git pull started", "process_id": process.pid}, status=200)
+        return JsonResponse({
+            "message": "Update process started",
+            "process_id": process.pid
+        }, status=200)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
