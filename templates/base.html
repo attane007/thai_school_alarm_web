@@ -420,6 +420,7 @@
         fetch('/api/version/')
           .then((response) => response.json())
           .then((data) => {          
+            const currentVersion = data.version // Local version  
             const updateAvailable = data.update_available // Boolean from API           
             const compatiblePython = data.compatible_python // Boolean from API
 
@@ -437,13 +438,13 @@
             }else{
               localStorage.setItem('version_data', JSON.stringify(data))
             }
+            updateModal();
           })
           .catch((error) => console.error('Error fetching version info from API:', error))
       } else {
         console.log('Skipping update check. Already checked today.')
+        updateModal();
       }
-
-      updateModal();
 
 
 
