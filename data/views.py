@@ -417,22 +417,74 @@ def get_current_version(request):
     })
 
 
+STATUS_FILE = "process_status.json"
+
 @require_http_methods(["GET"])
 def api_update(request):
-    try:
-        # ตรวจสอบว่าเป็นระบบปฏิบัติการ Windows หรือไม่
-        if platform.system() == 'Windows':
-            # ใช้คำสั่ง 'dir' บน Windows
-            process = subprocess.Popen(["dir"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
-        else:
-            # ใช้คำสั่ง 'ls -l' บนระบบ Unix (Linux/macOS)
-            process = subprocess.Popen(["ls", "-l"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-        # คืนค่า process ID ในการตอบกลับ
-        return JsonResponse({"process_id": process.pid}, status=200)
+    if platform.system() == "Windows":
+        return JsonResponse({"error": "Windows is not supported"}, status=400)
+    
+    try:
+        git_command = ["git", "pull", "origin", "prod"]
+        process = subprocess.Popen(git_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # อ่านข้อมูลเก่าจากไฟล์ (ถ้ามี)
+        if os.path.exists(STATUS_FILE):
+            with open(STATUS_FILE, "r") as f:
+                try:
+                    status_data = json.load(f)
+                except json.JSONDecodeError:
+                    status_data = []
+        else:
+            status_data = []
+
+        # เพิ่ม process ใหม่ลงในรายการ
+        new_process = {
+            "process_id": process.pid,
+            "status": "running",
+            "output": "",
+            "error": ""
+        }
+        status_data.append(new_process)
+
+        # เขียนกลับไปที่ไฟล์
+        with open(STATUS_FILE, "w") as f:
+            json.dump(status_data, f, indent=4)
+
+        return JsonResponse({"message": "Git pull started", "process_id": process.pid}, status=200)
+
     except Exception as e:
-        # หากเกิดข้อผิดพลาด จะถูกจับที่นี่
         return JsonResponse({"error": str(e)}, status=500)
+
+@require_http_methods(["GET"])
+def api_update_status(request):
+    """เช็คสถานะของ `git pull`"""
+    if not os.path.exists(STATUS_FILE):
+        return JsonResponse({"error": "No update in progress"}, status=404)
+
+    with open(STATUS_FILE, "r") as f:
+        status_data = json.load(f)
+
+    return JsonResponse(status_data)
+
+def check_git_pull_result():
+    """ตรวจสอบผลลัพธ์ของ `git pull` แล้วอัปเดตไฟล์สถานะ"""
+    if not os.path.exists(STATUS_FILE):
+        return
+
+    with open(STATUS_FILE, "r") as f:
+        status_data = json.load(f)
+
+    if status_data["status"] == "running":
+        process = subprocess.Popen(["ps", "-p", str(status_data["process_id"])], stdout=subprocess.PIPE)
+        process.communicate()
+        if process.returncode != 0:  # Process จบแล้ว
+            with open(STATUS_FILE, "w") as f:
+                status_data["status"] = "completed"
+                f.write(json.dumps(status_data))
+
+# อาจตั้งค่า cron job ให้ `check_git_pull_result()` ทำงานทุก 5 วินาที
 
 @require_http_methods(["GET"])
 def api_process(request, process_id):
