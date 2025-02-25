@@ -417,7 +417,7 @@ def get_current_version(request):
     })
 
 
-STATUS_FILE = "process_status.txt"
+STATUS_FILE = "process_status.log"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Django root path
 SCRIPT_PATH = os.path.join(BASE_DIR, "scripts/update_script.sh")
 
@@ -446,32 +446,16 @@ def api_update(request):
 
 @require_http_methods(["GET"])
 def api_update_status(request):
-    """เช็คสถานะของ `git pull`"""
+    if platform.system() == "Windows":
+        return JsonResponse({"error": "Windows is not supported"}, status=400)
+     
     if not os.path.exists(STATUS_FILE):
         return JsonResponse({"error": "No update in progress"}, status=404)
 
     with open(STATUS_FILE, "r") as f:
-        status_data = json.load(f)
+        status_data = f
 
     return JsonResponse(status_data)
-
-def check_git_pull_result():
-    """ตรวจสอบผลลัพธ์ของ `git pull` แล้วอัปเดตไฟล์สถานะ"""
-    if not os.path.exists(STATUS_FILE):
-        return
-
-    with open(STATUS_FILE, "r") as f:
-        status_data = json.load(f)
-
-    if status_data["status"] == "running":
-        process = subprocess.Popen(["ps", "-p", str(status_data["process_id"])], stdout=subprocess.PIPE)
-        process.communicate()
-        if process.returncode != 0:  # Process จบแล้ว
-            with open(STATUS_FILE, "w") as f:
-                status_data["status"] = "completed"
-                f.write(json.dumps(status_data))
-
-# อาจตั้งค่า cron job ให้ `check_git_pull_result()` ทำงานทุก 5 วินาที
 
 @require_http_methods(["GET"])
 def api_process(request, process_id):
