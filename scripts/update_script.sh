@@ -25,11 +25,11 @@ EXIT_CODE=$?
 if [ $EXIT_CODE -eq 0 ]; then
     log_message "✅ Git pull completed successfully."
 
-    # ✅ รัน reload script หลังจากอัปเดตสำเร็จ
+    # ✅ ใช้ `exec` เพื่อให้ log ครบทุกบรรทัด
     if [ -f "$RELOAD_SCRIPT" ]; then
         log_message "🔄 Running reload script: $RELOAD_SCRIPT"
         chmod +x "$RELOAD_SCRIPT"
-        "$RELOAD_SCRIPT" 2>&1 | tee -a "$STATUS_FILE"  # ✅ Append output จาก reload script
+        exec "$RELOAD_SCRIPT" 2>&1 | tee -a "$STATUS_FILE"
     else
         log_message "⚠️ Reload script not found!"
     fi
