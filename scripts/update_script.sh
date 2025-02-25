@@ -1,6 +1,7 @@
 #!/bin/bash
 
 STATUS_FILE="process_status.json"
+RELOAD_SCRIPT="scripts/reload_django.sh"
 
 # ตั้งค่าเริ่มต้นเป็น running
 echo '{
@@ -23,14 +24,24 @@ EXIT_CODE=$?
 if [ $EXIT_CODE -eq 0 ]; then
     STATUS="success"
     ERROR_MSG=""
+    
+    # ✅ รัน reload.sh หลังจากอัปเดตสำเร็จ
+    if [ -f "$RELOAD_SCRIPT" ]; then
+        chmod +x "$RELOAD_SCRIPT"
+        RELOAD_OUTPUT=$("$RELOAD_SCRIPT" 2>&1)
+    else
+        RELOAD_OUTPUT="Reload script not found"
+    fi
 else
     STATUS="failed"
     ERROR_MSG="$GIT_OUTPUT"
+    RELOAD_OUTPUT=""
 fi
 
 # อัปเดตสถานะในไฟล์ JSON
 echo '{
     "status": "'"$STATUS"'",
     "output": "'"$GIT_OUTPUT"'",
-    "error": "'"$ERROR_MSG"'"
+    "error": "'"$ERROR_MSG"'",
+    "reload_output": "'"$RELOAD_OUTPUT"'"
 }' > $STATUS_FILE
