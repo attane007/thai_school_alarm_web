@@ -417,7 +417,7 @@ def get_current_version(request):
     })
 
 
-STATUS_FILE = "process_status.json"
+STATUS_FILE = "process_status.txt"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Django root path
 SCRIPT_PATH = os.path.join(BASE_DIR, "scripts/update_script.sh")
 
