@@ -20,6 +20,7 @@ from data.function import get_wav_length
 from functools import wraps
 from decouple import Config,RepositoryEnv
 from django.conf import settings
+from data.lib.process import is_process_running
 
 def check_env_file(view_func):
     """Decorator to check if the .env file exists and required variables are set."""
@@ -445,48 +446,25 @@ def api_update(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 @require_http_methods(["GET"])
-def api_update_status(request):
+def api_process(request, process_id):
     if platform.system() == "Windows":
         return JsonResponse({"error": "Windows is not supported"}, status=400)
-     
+
+    # ตรวจสอบว่า process กำลังทำงานอยู่หรือไม่
+    if not is_process_running(process_id):
+        return JsonResponse({"success": "No process in progress"}, status=200)
+
+    # ถ้า process ทำงานอยู่ ให้ตรวจสอบไฟล์สถานะ
     if not os.path.exists(STATUS_FILE):
-        return JsonResponse({"error": "No update in progress"}, status=404)
+        return JsonResponse({"error": "No process in progress"}, status=404)
 
-    with open(STATUS_FILE, "r") as f:
-        status_data = f
-
-    return JsonResponse(status_data)
-
-@require_http_methods(["GET"])
-def api_process(request, process_id):
     try:
-        # Define a generator function to stream the process output
-        def stream_process_output(process_id):
-            # Check if the system is Windows or Unix
-            if platform.system() == 'Windows':
-                # ใช้คำสั่ง 'tasklist' หรือ 'wmic' เพื่อดึงข้อมูลโปรเซส
-                command = ["tasklist", "/FI", f"PID eq {process_id}"]
-            else:
-                # ใช้คำสั่ง 'ps' บน Linux/macOS
-                command = ["ps", "-p", str(process_id), "-o", "stat="]
-            
-            # Run the process with subprocess and stream the output
-            with subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            ) as process:
-                for line in process.stdout:
-                    yield line  # Yield output as it's produced
-                
-                # Handle potential errors from stderr
-                for err_line in process.stderr:
-                    yield f"Error: {err_line}"
-
-        # Create a StreamingHttpResponse to stream the process output
-        response = StreamingHttpResponse(stream_process_output(process_id), content_type="text/plain")
-        return response
+        with open(STATUS_FILE, "r") as f:
+            status_data = f.read().strip()  # อ่านข้อมูลและลบช่องว่าง/ขึ้นบรรทัดใหม่ส่วนเกิน
         
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        if not status_data:
+            return JsonResponse({"success": "No process in progress"}, status=200)
+
+        return JsonResponse({"status": "running","log":status_data}, status=200)
+    except IOError:
+        return JsonResponse({"error": "Failed to read status file"}, status=500)
