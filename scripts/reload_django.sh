@@ -30,7 +30,16 @@ python3 manage.py collectstatic --noinput
 echo "Applying migrations..."
 python3 manage.py migrate
 
+# ก่อน restart
+OLD_PID=$(pgrep -f "python3 manage.py runserver")
+
 sudo systemctl restart $SERVICE_NAME
+
+# หลัง restart
+NEW_PID=$(pgrep -f "python3 manage.py runserver")
+
+echo "Old PID: $OLD_PID" | tee -a "$STATUS_FILE"
+echo "New PID: $NEW_PID" | tee -a "$STATUS_FILE"
 
 # Return to the original directory
 cd "$INITIAL_DIR"
