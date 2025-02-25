@@ -13,4 +13,4 @@ debug.log
 /env
 staticfiles
 .venv_linux/
-process_status.json
+scripts/process_status.json
