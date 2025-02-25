@@ -418,7 +418,9 @@ def get_current_version(request):
 
 
 STATUS_FILE = "process_status.json"
-SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "scripts/update_script.sh")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Django root path
+SCRIPT_PATH = os.path.join(BASE_DIR, "scripts/update_script.sh")
+
 
 @require_http_methods(["GET"])
 def api_update(request):
