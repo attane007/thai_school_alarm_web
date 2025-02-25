@@ -426,6 +426,9 @@ def api_update(request):
         return JsonResponse({"error": "Windows is not supported"}, status=400)
 
     try:
+        # ให้สิทธิ์ execute กับ shell script
+        subprocess.run(["chmod", "+x", SCRIPT_PATH], check=True)
+        
         # รัน shell script
         process = subprocess.Popen(
             [SCRIPT_PATH], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True
