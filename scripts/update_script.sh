@@ -13,7 +13,7 @@ echo '{
     "status": "running",
     "output": "",
     "error": ""
-}' > $STATUS_FILE
+}' > "$STATUS_FILE"
 
 log_and_update "⏳ Starting update process..."
 log_and_update "⚡ Resetting local changes..."
@@ -23,10 +23,8 @@ log_and_update "🧹 Cleaning untracked files..."
 git clean -fd &>> "$STATUS_FILE"
 
 log_and_update "⬇️ Pulling latest code from branch 'prod'..."
-GIT_OUTPUT=$(git pull origin prod --force 2>&1)
+GIT_OUTPUT=$(git pull origin prod --force 2>&1 | tee -a "$STATUS_FILE")
 EXIT_CODE=$?
-
-echo "$GIT_OUTPUT" >> "$STATUS_FILE"
 
 if [ $EXIT_CODE -eq 0 ]; then
     STATUS="success"
@@ -37,16 +35,13 @@ if [ $EXIT_CODE -eq 0 ]; then
     if [ -f "$RELOAD_SCRIPT" ]; then
         log_and_update "🔄 Running reload script: $RELOAD_SCRIPT"
         chmod +x "$RELOAD_SCRIPT"
-        RELOAD_OUTPUT=$("$RELOAD_SCRIPT" 2>&1)
-        log_and_update "$RELOAD_OUTPUT"
+        "$RELOAD_SCRIPT" 2>&1 | tee -a "$STATUS_FILE"  # ✅ Append output จาก reload script
     else
-        RELOAD_OUTPUT="Reload script not found"
         log_and_update "⚠️ Reload script not found!"
     fi
 else
     STATUS="failed"
     ERROR_MSG="$GIT_OUTPUT"
-    RELOAD_OUTPUT=""
     log_and_update "❌ Git pull failed!"
 fi
 
@@ -54,8 +49,7 @@ fi
 echo '{
     "status": "'"$STATUS"'",
     "output": "'"$(cat $STATUS_FILE)"'",
-    "error": "'"$ERROR_MSG"'",
-    "reload_output": "'"$RELOAD_OUTPUT"'"
+    "error": "'"$ERROR_MSG"'"
 }' > "$STATUS_FILE"
 
 log_and_update "✅ Update process finished."
