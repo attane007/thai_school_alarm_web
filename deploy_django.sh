@@ -9,6 +9,8 @@ VENV_DIR="$PROJECT_DIR/.venv"
 SERVICE_NAME="thai_school_alarm_web.service"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
 START_PORT=8000
+CELERY_SERVICE_NAME="thai_school_alarm_celery.service"
+CELERY_BEAT_SERVICE_NAME="thai_school_alarm_beat.service"
 
 # Function to find an available port
 find_available_port() {
@@ -41,8 +43,11 @@ check_python_version
 
 # 1. Install required packages
 echo "Installing required packages..."
-# sudo apt update
-sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential
+sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential libsdl2-mixer-2.0-0 libsdl2-2.0-0 rabbitmq-server
+
+# Enable and start RabbitMQ
+sudo systemctl enable rabbitmq-server
+sudo systemctl start rabbitmq-server
 
 # Ensure /var/www exists and set correct ownership
 if [ ! -d "/var/www" ]; then
@@ -78,7 +83,7 @@ if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 else
     echo "requirements.txt not found. Installing Django and Daphne only..."
-    pip install django daphne
+    pip install django daphne celery
 fi
 
 # 5. Collect static files for production
@@ -89,13 +94,8 @@ python3 manage.py collectstatic --noinput
 echo "Applying migrations..."
 python3 manage.py migrate
 
-# Remove old service file if it exists
-if [ -f "$SERVICE_FILE" ]; then
-    echo "Removing existing service file..."
-    sudo rm -f "$SERVICE_FILE"
-fi
-
-# Create the new service file
+# 7. Create the systemd service file for Daphne
+echo "Creating Daphne service..."
 sudo bash -c "cat > $SERVICE_FILE" <<EOF
 [Unit]
 Description=Thai School Alarm Service
@@ -112,13 +112,53 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-# 8. Reload systemd, enable and start the service
-echo "Reloading systemd and enabling service..."
+# Create systemd service file for Celery Worker
+sudo bash -c "cat > /etc/systemd/system/$CELERY_SERVICE_NAME" <<EOF
+[Unit]
+Description=Celery Worker for Thai School Alarm
+After=network.target
+
+[Service]
+User=$USER
+Group=$USER
+WorkingDirectory=$PROJECT_DIR
+ExecStart=$VENV_DIR/bin/celery -A thai_school_alarm_web worker --loglevel=info
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Create systemd service file for Celery Beat
+sudo bash -c "cat > /etc/systemd/system/$CELERY_BEAT_SERVICE_NAME" <<EOF
+[Unit]
+Description=Celery Beat Scheduler for Thai School Alarm
+After=network.target
+
+[Service]
+User=$USER
+Group=$USER
+WorkingDirectory=$PROJECT_DIR
+ExecStart=$VENV_DIR/bin/celery -A thai_school_alarm_web beat --loglevel=info
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 8. Reload systemd, enable and start the services
+echo "Reloading systemd and enabling services..."
 sudo systemctl daemon-reload
 sudo systemctl enable $SERVICE_NAME
 sudo systemctl restart $SERVICE_NAME
 
+# Enable and start Celery Worker and Beat services
+sudo systemctl enable $CELERY_SERVICE_NAME
+sudo systemctl start $CELERY_SERVICE_NAME
+sudo systemctl enable $CELERY_BEAT_SERVICE_NAME
+sudo systemctl start $CELERY_BEAT_SERVICE_NAME
+
 # Return to the original directory
 cd "$INITIAL_DIR"
 echo "Returned to $INITIAL_DIR"
-echo "you can access thai_school_alarm from http://your_ip:$AVAILABLE_PORT for Daphne"
+echo "You can access Thai School Alarm from http://your_ip:$AVAILABLE_PORT for Daphne"
