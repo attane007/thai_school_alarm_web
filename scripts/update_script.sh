@@ -28,3 +28,5 @@ echo '{
     "output": "'"$GIT_OUTPUT"'",
     "error": "'"$ERROR_MSG"'"
 }' > $STATUS_FILE
+
+#
