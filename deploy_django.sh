@@ -49,6 +49,12 @@ sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-ess
 sudo systemctl enable rabbitmq-server
 sudo systemctl start rabbitmq-server
 
+# Add RabbitMQ user and permissions
+echo "Setting up RabbitMQ user and permissions..."
+sudo rabbitmqctl add_user user school_alarm
+sudo rabbitmqctl add_vhost /
+sudo rabbitmqctl set_permissions -p / user ".*" ".*" ".*"
+
 # Ensure /var/www exists and set correct ownership
 if [ ! -d "/var/www" ]; then
     echo "Creating /var/www directory..."
