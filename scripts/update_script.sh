@@ -9,8 +9,14 @@ echo '{
     "error": ""
 }' > $STATUS_FILE
 
-# ทำ git pull
-GIT_OUTPUT=$(git pull origin prod 2>&1)
+# รีเซ็ตการเปลี่ยนแปลงใน local
+git reset --hard origin/prod
+
+# ล้างไฟล์ที่ไม่ได้อยู่ในการควบคุมของ Git (Optional: ถ้ามีไฟล์ใหม่ที่ไม่ได้ commit)
+git clean -fd
+
+# ดึงโค้ดล่าสุดจาก branch prod
+GIT_OUTPUT=$(git pull origin prod --force 2>&1)
 EXIT_CODE=$?
 
 # ตรวจสอบว่า git pull สำเร็จหรือไม่
@@ -28,5 +34,3 @@ echo '{
     "output": "'"$GIT_OUTPUT"'",
     "error": "'"$ERROR_MSG"'"
 }' > $STATUS_FILE
-
-#
