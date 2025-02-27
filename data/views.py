@@ -435,6 +435,7 @@ def api_update(request):
         process = subprocess.Popen(
             [SCRIPT_PATH], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True
         )
+        process.wait()
 
         return JsonResponse({
             "message": "Update process started",
