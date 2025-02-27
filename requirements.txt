@@ -34,6 +34,7 @@ prompt_toolkit==3.0.47
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
 pycparser==2.22
+pydub==0.25.1
 pygame==2.6.0
 Pygments==2.18.0
 pyOpenSSL==24.1.0
