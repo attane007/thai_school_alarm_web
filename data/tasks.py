@@ -4,8 +4,8 @@ from datetime import datetime
 from pytz import timezone
 from data.time_sound import tell_hour,tell_minute
 from celery.utils.log import get_task_logger
-import pygame
 import logging
+import subprocess
 from celery.schedules import crontab
 import os
 
@@ -61,21 +61,19 @@ def check_schedule():
 @app.task
 def play_sound(sound_paths=[]):
     if not sound_paths:
-        sound_paths=['audio/bell/sound1/First.wav','audio/bell/sound2/First.wav','audio/bell/sound3/First.wav']
+        sound_paths = ['audio/bell/sound1/First.wav', 'audio/bell/sound2/First.wav', 'audio/bell/sound3/First.wav']
     else:
         if len(sound_paths) == 1:
-            sound_paths=['audio/bell/sound1/First.wav',sound_paths[0],'audio/bell/sound1/First.wav']
+            sound_paths = ['audio/bell/sound1/First.wav', sound_paths[0], 'audio/bell/sound1/First.wav']
+
     try:
-        pygame.mixer.init()
         for path in sound_paths:
-            sound = pygame.mixer.Sound(path)
-            sound.play()
-            pygame.time.wait(int(sound.get_length() * 1000))  # wait for sound to finish playing
+            command = ['ffplay', '-nodisp', '-autoexit', path]
+            # Use subprocess to run the ffplay command for each sound
+            subprocess.run(command, check=True)
         logging.info("Successfully played all sounds.")
     except Exception as e:
         logging.error(f"An error occurred: {e}")
-    finally:
-        pygame.mixer.quit()
 
 app.conf.beat_schedule = {
     'run_schedule':{

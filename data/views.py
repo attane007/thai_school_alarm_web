@@ -16,7 +16,6 @@ import re
 import sys
 import subprocess
 import platform
-from data.function import get_audio_length
 from functools import wraps
 from decouple import Config,RepositoryEnv
 from django.conf import settings
@@ -193,14 +192,9 @@ def create_audio(request):
 @require_http_methods(["GET"])
 def play_audio(request, audio_id):
     audio = get_object_or_404(Audio, pk=audio_id)
-    
-    duration = get_audio_length(audio.path)
-    duration = math.ceil(duration) + 10  # Add buffer time
-    print(f"Audio duration: {duration} seconds")
     abs_dir = os.path.abspath(audio.path)
     try:
         play_sound([abs_dir])  # Celery plays the sound in the background
-        time.sleep(duration)  # Wait for audio to finish (consider using async)
     except Exception as e:
         print(str(e))
         return JsonResponse({'error': f'Error playing audio: {str(e)}'}, status=500)
