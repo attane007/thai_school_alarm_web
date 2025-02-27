@@ -1,8 +1,8 @@
 {
-    "version": "1.3.0",
+    "version": "1.3.1",
     "release_date": "2025-02-21",
     "changelog": [
-        "Add upload mp3"
+        "Fix bug when play sound"
     ],
     "python_version":["3.10.16 - 3.12.0"]
 }

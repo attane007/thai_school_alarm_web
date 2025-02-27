@@ -58,8 +58,12 @@ def check_schedule():
     return f"Checked schedules at {current_time} for hour {hour} and minute {minute}"
 
 
+processes = []
+
 @app.task
 def play_sound(sound_paths=[]):
+    global processes
+
     if not sound_paths:
         sound_paths = ['audio/bell/sound1/First.wav', 'audio/bell/sound2/First.wav', 'audio/bell/sound3/First.wav']
     else:
@@ -67,13 +71,27 @@ def play_sound(sound_paths=[]):
             sound_paths = ['audio/bell/sound1/First.wav', sound_paths[0], 'audio/bell/sound1/First.wav']
 
     try:
+        # หยุดเสียงที่กำลังเล่นก่อน (ถ้ามี)
+        stop_sound()
+
         for path in sound_paths:
             command = ['ffplay', '-nodisp', '-autoexit', path]
-            # Use subprocess to run the ffplay command for each sound
-            subprocess.run(command, check=True)
+            process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            processes.append(process)
+            process.wait()  # รอให้เล่นจบก่อนเริ่มไฟล์ถัดไป
+
         logging.info("Successfully played all sounds.")
     except Exception as e:
         logging.error(f"An error occurred: {e}")
+
+def stop_sound():
+    """ หยุดเสียงที่กำลังเล่นอยู่ """
+    global processes
+    for process in processes:
+        if process.poll() is None:  # ถ้าโปรเซสยังทำงานอยู่
+            process.terminate()  # ส่งสัญญาณให้หยุด
+    processes = []  # ล้างรายการโปรเซส
+    logging.info("Stopped playing sounds.")
 
 app.conf.beat_schedule = {
     'run_schedule':{
