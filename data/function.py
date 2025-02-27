@@ -1,12 +1,9 @@
+from pydub import AudioSegment
 
-import wave
-import subprocess
-
-def get_wav_length(file_path):
-    with wave.open(file_path, 'rb') as wav_file:
-        # Get the number of frames and the frame rate
-        num_frames = wav_file.getnframes()
-        frame_rate = wav_file.getframerate()
-        # Calculate the duration in seconds
-        duration = num_frames / float(frame_rate)
-        return duration
+def get_audio_length(file_path):
+    try:
+        audio = AudioSegment.from_file(file_path)  # Works with MP3, WAV, etc.
+        return len(audio) / 1000  # Convert milliseconds to seconds
+    except Exception as e:
+        print(f"Error reading audio file: {e}")
+        return 0

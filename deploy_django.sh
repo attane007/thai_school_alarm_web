@@ -43,7 +43,7 @@ check_python_version
 
 # 1. Install required packages
 echo "Installing required packages..."
-sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential libsdl2-mixer-2.0-0 libsdl2-2.0-0 rabbitmq-server
+sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential ffmpeg rabbitmq-server
 
 # Enable and start RabbitMQ
 sudo systemctl enable rabbitmq-server
