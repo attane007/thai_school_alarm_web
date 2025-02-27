@@ -17,3 +17,4 @@ scripts/process_status.json
 process_status.log
 .venv
 audio/uploads
+data/lib/__pycache__
