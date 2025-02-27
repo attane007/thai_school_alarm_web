@@ -136,13 +136,15 @@ def setup(request):
 # API zone
 
 @require_http_methods(["DELETE"])
-def delete_audio(request,audio_id):
+def delete_audio(request, audio_id):
     audio = get_object_or_404(Audio, pk=audio_id)
-    try:
-        os.remove(audio.path)
-        audio.delete()
-    except Exception:
-        print(Exception)
+    if os.path.exists(audio.path):
+        try:
+            os.remove(audio.path)
+        except Exception as e:
+            print(f"Error deleting file: {e}")
+    audio.delete()
+
     return JsonResponse({'message': 'Audio deleted successfully.'})
 
 @require_http_methods(["POST"])
@@ -468,3 +470,37 @@ def api_process(request, process_id):
         return JsonResponse({"status": "running","log":status_data}, status=200)
     except IOError:
         return JsonResponse({"error": "Failed to read status file"}, status=500)
+
+@csrf_exempt
+def upload_file(request):
+    UPLOAD_DIR = "audio/uploads/"
+
+    # Ensure the upload directory exists
+    if not os.path.exists(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
+
+    if request.method == "POST" and request.FILES.get("file"):
+        uploaded_file = request.FILES["file"]
+        
+        # Validate file type (only allow MP3)
+        if not uploaded_file.name.lower().endswith(".mp3"):
+            return JsonResponse({"error": "อัพโหลดได้เฉพาะไฟล์ MP3 เท่านั้น!"}, status=400)
+
+        file_path = os.path.join(UPLOAD_DIR, uploaded_file.name)
+
+        # Save file to disk
+        with open(file_path, "wb+") as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+
+        # Save file info to the Audio model
+        audio = Audio.objects.create(name=uploaded_file.name, path=file_path)
+
+        return JsonResponse({
+            "message": f"ไฟล์ {uploaded_file.name} อัพโหลดสำเร็จ!",
+            "id": audio.id,
+            "name": audio.name,
+            "path": audio.path
+        })
+
+    return JsonResponse({"error": "อัพโหลดไม่สำเร็จ"}, status=400)

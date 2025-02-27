@@ -36,6 +36,7 @@ urlpatterns = [
     path('api/version/', views.get_current_version, name='get_current_version'),
     path('api/update/', views.api_update),
     path('api/process/<str:process_id>/', views.api_process),
+    path('api/upload/', views.upload_file),
 ]
 
 if settings.DEBUG:

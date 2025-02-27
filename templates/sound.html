@@ -1,196 +1,251 @@
-{% extends "base_sidebar.html" %} {% block main %}
-<style>
-  .form-control {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-</style>
-<main id="main" class="main">
-  <div class="pagetitle">
-    <h1>จัดการเสียง</h1>
-    <nav>
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/setting">Sound</a></li>
-      </ol>
-    </nav>
-  </div>
-  <!-- End Page Title -->
+{% extends 'base_sidebar.html' %} {% block main %}
+  <style>
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  </style>
+  <main id="main" class="main">
+    <div class="pagetitle">
+      <h1>จัดการเสียง</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="/setting">Sound</a>
+          </li>
+        </ol>
+      </nav>
+    </div>
+    <!-- End Page Title -->
 
-  <section class="section">
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">จัดการข้อมูลเสียง</h5>
-            <form id="speech_form" action="POST">
-              <div class="row mb-3">
-                <label for="inputText" class="col-md-2 col-form-label"
-                  ><strong>เพิ่มเสียงในฐานข้อมูล</strong></label
-                >
-                <div class="col-md-4">
-                  <input type="text" class="form-control" id="inputText" maxlength="300" required autocomplete="off"/>                  
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">อัพโหลดเสียง</h5>
+              <form action="POST" id="uploadForm">
+                <div class="row mb-3">
+                  <label for="inputText" class="col-md-3 col-form-label"><strong>เพิ่มเสียงจากเครื่องคอมพิวเตอร์</strong></label>
+                  <div class="col-md-4">
+                    <div class="input-group mb-3">
+                      <label class="input-group-text" for="file_upload">Upload</label>
+                      <input type="file" class="form-control" id="file_upload" accept=".mp3">
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <button type="submit" class="btn btn-success" title="เพิ่ม"><i class="bx bxs-cloud-upload"></i> อัพโหลด</button>
+                  </div>
                 </div>
-                <div class="col-md-2">
-                  <button type="submit" class="btn btn-success" title="เพิ่ม"><i class='bx bx-play-circle'></i> เพิ่ม</button>
-                </div>
-              </div>
-            </form>
-            <table class="table" id="myTable">
-              <thead>
-                <tr>
-                  <th class="text-center">ลำดับที่</th>
-                  <th>ชื่อ</th>
-                  <th class="text-center">จัดการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for audio in audios %}
-                <tr>
-                  <td class="text-center">
-                    {{ forloop.counter }}
-                  </td>
-                  <td>
-                    {{audio.name}}
-                  </td>
-                  <td>
-                    <button type="button" class="btn btn-danger" title="ลบ" onclick="return removeAudio({{audio.id}})"><i class='bx bxs-trash'></i></button>
-                    <button type="button" class="btn btn-info" title="เล่นเสียง" onclick="return playAudio({{audio.id}})"><i class='bx bx-play-circle'></i></button>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-</main>
-<!-- End #main -->
+    </section>
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">จัดการข้อมูลเสียง</h5>
+              <form id="speech_form" action="POST">
+                <div class="row mb-3">
+                  <label for="inputText" class="col-md-3 col-form-label"><strong>AI เพิ่มเสียงในฐานข้อมูล</strong></label>
+                  <div class="col-md-4">
+                    <input type="text" class="form-control" id="inputText" maxlength="300" required autocomplete="off" />
+                  </div>
+                  <div class="col-md-2">
+                    <button type="submit" class="btn btn-success" title="เพิ่ม"><i class="bx bx-play-circle"></i> เพิ่ม</button>
+                  </div>
+                </div>
+              </form>
+              <table class="table" id="myTable">
+                <thead>
+                  <tr>
+                    <th class="text-center">ลำดับที่</th>
+                    <th>ชื่อ</th>
+                    <th class="text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for audio in audios %}
+                    <tr>
+                      <td class="text-center">{{ forloop.counter }}</td>
+                      <td>{{ audio.name }}</td>
+                      <td>
+                        <button type="button" class="btn btn-danger" title="ลบ" onclick="return removeAudio({{ audio.id }})"><i class="bx bxs-trash"></i></button>
+                        <button type="button" class="btn btn-info" title="เล่นเสียง" onclick="return playAudio({{ audio.id }})"><i class="bx bx-play-circle"></i></button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <!-- End #main -->
 
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const dataTable = new simpleDatatables.DataTable("#myTable", {
-      searchable: true,
-      fixedHeight: false,
-      perPage: 50,
-      perPageSelect: [10, 25, 50, 100]
-    });
-  });
-</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const dataTable = new simpleDatatables.DataTable('#myTable', {
+        searchable: true,
+        fixedHeight: false,
+        perPage: 50,
+        perPageSelect: [10, 25, 50, 100]
+      })
+    })
+  </script>
 
-<script>
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-          const cookie = cookies[i].trim();
+  <script>
+    function getCookie(name) {
+      let cookieValue = null
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';')
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim()
           // Check if the cookie contains the CSRF token name
-          if (cookie.substring(0, name.length + 1) === (name + '=')) {
-              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-              break;
+          if (cookie.substring(0, name.length + 1) === name + '=') {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+            break
           }
+        }
       }
-  }
-  return cookieValue;
-}
-
-function removeAudio(audioId) {
-  if (confirm('Are you sure you want to delete this schedule?')) {
-    const csrftoken = getCookie('csrftoken');
-      fetch(`/delete_audio/${audioId}/`, {
+      return cookieValue
+    }
+    
+    function removeAudio(audioId) {
+      if (confirm('Are you sure you want to delete this schedule?')) {
+        const csrftoken = getCookie('csrftoken')
+        fetch(`/delete_audio/${audioId}/`, {
           method: 'DELETE',
           headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': csrftoken,
-          },
-      })
-      .then(response => {
-          if (!response.ok) {
-              throw new Error(`HTTP error! Status: ${response.status}`);
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
           }
-          return response.json();
-      })
-      .then(data => {
-          console.log('Audio deleted successfully:', data);
-          // Optionally, update the UI or perform other actions upon successful deletion
-          location.reload();
-      })
-      .catch(error => {
-          console.error('Error deleting schedule:', error);
-          // Handle errors or display an error message to the user
-      });
-  }
-  return false; // Prevent default action of the button
-}
-
-function playAudio(audioId) {
-  const csrftoken = getCookie('csrftoken');
-    fetch(`/play_audio/${audioId}/`, {
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`)
+            }
+            return response.json()
+          })
+          .then((data) => {
+            console.log('Audio deleted successfully:', data)
+            // Optionally, update the UI or perform other actions upon successful deletion
+            location.reload()
+          })
+          .catch((error) => {
+            console.error('Error deleting schedule:', error)
+            // Handle errors or display an error message to the user
+          })
+      }
+      return false // Prevent default action of the button
+    }
+    
+    function playAudio(audioId) {
+      const csrftoken = getCookie('csrftoken')
+      fetch(`/play_audio/${audioId}/`, {
         method: 'GET',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken,
-        },
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
         }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Audio played successfully:', data);
-        // Optionally, update the UI or perform other actions upon successful deletion
-        //location.reload();
-    })
-    .catch(error => {
-        console.error('Error deleting schedule:', error);
-        // Handle errors or display an error message to the user
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`)
+          }
+          return response.json()
+        })
+        .then((data) => {
+          console.log('Audio played successfully:', data)
+          // Optionally, update the UI or perform other actions upon successful deletion
+          //location.reload();
+        })
+        .catch((error) => {
+          console.error('Error deleting schedule:', error)
+          // Handle errors or display an error message to the user
+        })
+    
+      return false // Prevent default action of the button
+    }
+    
+    document.getElementById("uploadForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+    
+      let fileInput = document.getElementById("file_upload");
+      let file = fileInput.files[0];
+    
+      if (!file) {
+        alert("กรุณาเลือกไฟล์ก่อนอัพโหลด!");
+        return;
+      }
+    
+      if (!file.name.endsWith(".mp3")) {
+        alert("กรุณาเลือกไฟล์ MP3 เท่านั้น!");
+        return;
+      }
+    
+      let formData = new FormData();
+      formData.append("file", file);
+    
+      fetch("/api/upload/", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.json())
+      .then(result => {
+        alert("อัพโหลดสำเร็จ: " + result.message);
+        location.reload()
+      })
+      .catch(error => {
+        alert("เกิดข้อผิดพลาด!");
+        console.error("Error:", error);
+      });
     });
-  
-  return false; // Prevent default action of the button
-}
+    
 
-document.getElementById('speech_form').addEventListener('submit', function(event) {
-  event.preventDefault();
-  const inputText = document.getElementById('inputText').value;
-  const data = {
-    text: inputText
-  };
-
-  const csrftoken = getCookie('csrftoken');
-  const submitButton = event.target.querySelector('button[type="submit"]');
-  submitButton.disabled = true;
-  const originalText = submitButton.innerHTML;
-  submitButton.innerHTML = 'กำลังดำเนินการ...';
-
-  fetch('/create_audio', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken,
-    },
-    body: JSON.stringify(data)
-  })
-  .then(response => response.json())
-  .then(data => {
-      // Handle the response data
-      console.log('Success:', data);
-      location.reload();
-  })
-  .catch((error) => {
-      console.error('Error:', error);
-  }).finally(() => {
-    submitButton.disabled = false;
-    submitButton.innerHTML = originalText; // Restore the original button text
-  });
-})
-
-</script>
-
-{% endblock main %}
+    document.getElementById('speech_form').addEventListener('submit', function (event) {
+      event.preventDefault()
+      const inputText = document.getElementById('inputText').value
+      const data = {
+        text: inputText
+      }
+    
+      const csrftoken = getCookie('csrftoken')
+      const submitButton = event.target.querySelector('button[type="submit"]')
+      submitButton.disabled = true
+      const originalText = submitButton.innerHTML
+      submitButton.innerHTML = 'กำลังดำเนินการ...'
+    
+      fetch('/create_audio', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(data)
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Handle the response data
+          console.log('Success:', data)
+          location.reload()
+        })
+        .catch((error) => {
+          console.error('Error:', error)
+        })
+        .finally(() => {
+          submitButton.disabled = false
+          submitButton.innerHTML = originalText // Restore the original button text
+        })
+    })
+  </script>
+{% endblock %}

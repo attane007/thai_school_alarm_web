@@ -36,7 +36,7 @@ volumes:
   #   devices:
   #     - /dev/snd:/dev/snd  # Pass through sound devices
 
-  
+
   # celerybeat:
   #   build:
   #     context: .
