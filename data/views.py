@@ -483,7 +483,7 @@ def upload_file(request):
         uploaded_file = request.FILES["file"]
         
         # Validate file type (only allow MP3)
-        if not uploaded_file.name.lower().endswith(".mp3"):
+        if not uploaded_file.name.lower().endswith(".mp3") or not uploaded_file.name.lower().endswith(".wav"):
             return JsonResponse({"error": "อัพโหลดได้เฉพาะไฟล์ MP3 เท่านั้น!"}, status=400)
 
         file_path = os.path.join(UPLOAD_DIR, uploaded_file.name)

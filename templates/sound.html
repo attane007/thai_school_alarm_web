@@ -33,7 +33,7 @@
                   <div class="col-md-4">
                     <div class="input-group mb-3">
                       <label class="input-group-text" for="file_upload">Upload</label>
-                      <input type="file" class="form-control" id="file_upload" accept=".mp3">
+                      <input type="file" class="form-control" id="file_upload" accept=".mp3,.wav">
                     </div>
                   </div>
                   <div class="col-md-2">
@@ -188,8 +188,8 @@
         return;
       }
     
-      if (!file.name.endsWith(".mp3")) {
-        alert("กรุณาเลือกไฟล์ MP3 เท่านั้น!");
+      if (!file.name.endsWith(".mp3") || !file.name.endsWith(".wav")) {
+        alert("กรุณาเลือกไฟล์ MP3 และ Wave เท่านั้น!");
         return;
       }
     
