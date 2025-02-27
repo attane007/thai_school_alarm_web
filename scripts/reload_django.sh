@@ -7,6 +7,8 @@ INITIAL_DIR=$(pwd)
 PROJECT_DIR="/var/www/thai_school_alarm_web"
 VENV_DIR="$PROJECT_DIR/.venv"
 SERVICE_NAME="thai_school_alarm_web.service"
+CELERY_SERVICE_NAME="thai_school_alarm_celery.service"
+CELERY_BEAT_SERVICE_NAME="thai_school_alarm_beat.service"
 
 cd $PROJECT_DIR
 source $VENV_DIR/bin/activate
@@ -30,16 +32,9 @@ python3 manage.py collectstatic --noinput
 echo "Applying migrations..."
 python3 manage.py migrate
 
-# ก่อน restart
-OLD_PID=$(pgrep -f "python3 manage.py runserver")
-
+sudo systemctl restart $CELERY_SERVICE_NAME
+sudo systemctl restart $CELERY_BEAT_SERVICE_NAME
 sudo systemctl restart $SERVICE_NAME
-
-# หลัง restart
-NEW_PID=$(pgrep -f "python3 manage.py runserver")
-
-echo "Old PID: $OLD_PID" | tee -a "$STATUS_FILE"
-echo "New PID: $NEW_PID" | tee -a "$STATUS_FILE"
 
 # Return to the original directory
 cd "$INITIAL_DIR"
