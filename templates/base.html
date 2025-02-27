@@ -415,8 +415,7 @@
         }
       }
 
-      // If we should check for updates, proceed
-      if (shouldCheckForUpdate()) {
+      function check_version(){
         fetch('/api/version/')
           .then((response) => response.json())
           .then((data) => {          
@@ -441,6 +440,36 @@
             updateModal();
           })
           .catch((error) => console.error('Error fetching version info from API:', error))
+      }
+
+      const pid = localStorage.getItem("process_id");
+      if (pid) {
+        console.log("Process ID:", pid);
+
+        fetch(`/api/process/${pid}/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Response from server:", data);
+        })
+        .catch(error => {
+          console.error("Error fetching process:", error);
+        });
+      }
+
+
+      // If we should check for updates, proceed
+      if (shouldCheckForUpdate()) {
+        check_version();
       } else {
         console.log('Skipping update check. Already checked today.')
         updateModal();
