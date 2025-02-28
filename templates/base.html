@@ -443,7 +443,7 @@
           .catch((error) => console.error('Error fetching version info from API:', error))
       }
 
-      const checkProcess = () => {
+      const checkProcess = async () => {
         const pid = localStorage.getItem("process_id");
       
         if (!pid) return; // ถ้าไม่มี process_id ให้หยุดทำงาน
@@ -464,8 +464,8 @@
           if (data.success === "No process in progress") {
             localStorage.removeItem("process_id");  // ลบ process_id ออกจาก localStorage
             await check_version();
-            location.reload();
             console.log("Process ID removed from localStorage.");
+            location.reload()
           }
         })
         .catch(error => {
