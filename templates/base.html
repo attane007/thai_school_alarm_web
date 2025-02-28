@@ -464,6 +464,7 @@
           if (data.success === "No process in progress") {
             localStorage.removeItem("process_id");  // ลบ process_id ออกจาก localStorage
             check_version();
+            location.reload();
             console.log("Process ID removed from localStorage.");
           }
         })
@@ -500,9 +501,14 @@
               // Save process_id to localStorage
               localStorage.setItem('process_id', data.process_id);
         
-              // อัพเดตปุ่มหลังจากคำขอสำเร็จ
+              const pid = localStorage.getItem("process_id");
+              if(pid){
+                this.disabled = true;
+              }else{
+                // อัพเดตปุ่มหลังจากคำขอสำเร็จ
               this.disabled = false;
               this.innerHTML = '<i class="bx bxs-cloud-download"></i> Update Now';
+              }
             })
             .catch((error) => {
               console.error('Error:', error);
