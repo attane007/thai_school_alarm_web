@@ -503,7 +503,6 @@
               // อัพเดตปุ่มหลังจากคำขอสำเร็จ
               this.disabled = false;
               this.innerHTML = '<i class="bx bxs-cloud-download"></i> Update Now';
-              get_process();
             })
             .catch((error) => {
               console.error('Error:', error);
@@ -513,51 +512,7 @@
               this.innerHTML = '<i class="bx bxs-cloud-download"></i> Update Now';
             });
         });
-
-
-        function get_process(){
-          const processId = localStorage.getItem("process_id");
-          const terminalOutput = document.getElementById('terminalOutput');
-          terminalOutput.textContent = 'Loading...';
-          if (processId) {  
-            // Fetch streamed process data
-            fetch(`/api/process/${processId}/`)
-                .then(response => {
-                  const reader = response.body.getReader();
-                  const decoder = new TextDecoder();
-                  const stream = new ReadableStream({
-                    start(controller) {
-                      function push() {
-                        reader.read().then(({ done, value }) => {
-                          if (done) {
-                            controller.close();
-                            return;
-                          }
-                          // Decode the chunk and append to the terminal output
-                          terminalOutput.textContent += decoder.decode(value, { stream: true });
-                          controller.enqueue(value);
-                          push();
-                        }).catch(err => {
-                          controller.error(err);
-                        });
-                      }
-            
-                      push();
-                    }
-                  });
-            
-                  // Consume the stream
-                  new Response(stream).text();
-
-                });
-        } else {
-            //console.error("No process ID found in localStorage");
-            return
-        }
-        }
-
-        get_process();
-        
+       
     </script>
     {% block js %}
 
