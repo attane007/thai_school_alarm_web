@@ -383,13 +383,23 @@
       function updateModal(){
         const updateButton = document.getElementById('updateButton')
         const updateBadge = document.getElementById('update-badge')
-        const updateAvailable=localStorage.getItem('updateAvailable') === 'true';
-        const compatiblePython=localStorage.getItem('compatiblePython')
-        const version_data=JSON.parse(localStorage.getItem('version_data'))
-        const currentVersion = version_data.version // Local version  
-        const latestVersion = version_data.latest_version // GitHub version
-        const releaseDate = version_data.release_date || 'Unknown' // Provided by API
-        const changelog = version_data.changelog ? version_data.changelog.join('<br>') : 'No details available' // Provided by API
+        try {
+          updateAvailable = localStorage.getItem('updateAvailable') === 'true';
+          compatiblePython = localStorage.getItem('compatiblePython');
+          version_data = JSON.parse(localStorage.getItem('version_data'));
+        } catch (error) {
+          console.error("Error reading from localStorage:", error);
+        }
+      
+        if (!version_data) {
+          console.log('No version data available');
+          return;
+        }
+      
+        const currentVersion = version_data.version; // Local version  
+        const latestVersion = version_data.latest_version; // GitHub version
+        const releaseDate = version_data.release_date || 'Unknown'; // Provided by API
+        const changelog = version_data.changelog ? version_data.changelog.join('<br>') : 'No details available'; // Provided by API
         
         // If an update is available, show update UI
         if (updateAvailable && compatiblePython) {
