@@ -1,8 +1,8 @@
 {
-    "version": "1.3.6",
+    "version": "1.4.0",
     "release_date": "2025-02-21",
     "changelog": [
-        "๊Update bell 3"
+        "๊Update django version to 5.1.7"
     ],
-    "python_version":["3.10.16 - 3.12.0"]
+    "python_version":["3.10.16 - 3.12.8"]
 }
