@@ -20,7 +20,7 @@ constantly==23.10.4
 cookiecutter==2.6.0
 cryptography==42.0.8
 daphne==4.1.2
-Django==5.0.7
+Django==5.1.7
 django-browser-reload==1.13.0
 hyperlink==21.0.0
 idna==3.7
