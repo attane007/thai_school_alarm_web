@@ -354,7 +354,7 @@ def get_current_version(request):
 
     try:
         # Read the local version.json
-        with open(version_file_path, 'r') as version_file:
+        with open(version_file_path, 'r', encoding='utf-8') as version_file:
             local_data = json.load(version_file)
             current_version = local_data.get('version', 'Unknown')
             supported_python_versions = local_data.get('python_version', [])
