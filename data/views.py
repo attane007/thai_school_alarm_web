@@ -236,7 +236,7 @@ def text_to_speech(request):
         if not durations:
             return JsonResponse({'error': 'No durations received in the response'}, status=500)
         rounded_duration = math.ceil(durations)
-        rounded_duration=rounded_duration+10
+        rounded_duration=rounded_duration
     
     except requests.exceptions.RequestException as e:
         # Catch errors related to the HTTP request (e.g., network issues)
@@ -260,7 +260,7 @@ def text_to_speech(request):
                 try:
                     with open(temp_file, 'wb') as file:
                         file.write(resp.content)
-                    play_sound.delay([temp_file])
+                    play_sound([temp_file])
                     time.sleep(rounded_duration)
                 finally:
                     shutil.rmtree(temp_dir)
