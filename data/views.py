@@ -276,7 +276,6 @@ def text_to_speech(request):
         print(f"Failed to synthesize speech: {response.reason}")
         return JsonResponse({"status":False,"msg":f"Failed to synthesize speech: {response.reason}"}, status=200)
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def add_voice_api_key(request):
     try:
