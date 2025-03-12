@@ -146,4 +146,6 @@ CELERY_TIMEZONE = 'UTC'
 CSRF_COOKIE_SECURE=True
 SESSION_COOKIE_SECURE=True
 
-CSRF_TRUSTED_ORIGINS =config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000').split(',')
+# CSRF_TRUSTED_ORIGINS =config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000').split(',')
+
+CORS_ALLOW_ALL_ORIGINS = True
