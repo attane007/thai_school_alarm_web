@@ -36,6 +36,7 @@ if '*' in ALLOWED_HOSTS:
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'thai_school_alarm_web.urls'
@@ -143,7 +145,9 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 
-CSRF_COOKIE_SECURE=True
-SESSION_COOKIE_SECURE=True
+# CSRF_COOKIE_SECURE=True
+# SESSION_COOKIE_SECURE=True
 
-CSRF_TRUSTED_ORIGINS =config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000').split(',')
+# CSRF_TRUSTED_ORIGINS =config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000').split(',')
+
+CORS_ALLOW_ALL_ORIGINS = True
