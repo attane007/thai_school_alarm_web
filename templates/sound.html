@@ -33,7 +33,7 @@
                   <div class="col-md-4">
                     <div class="input-group mb-3">
                       <label class="input-group-text" for="file_upload">Upload</label>
-                      <input type="file" class="form-control" id="file_upload" accept=".mp3,.wav">
+                      <input type="file" class="form-control" id="file_upload" accept=".mp3,.wav" />
                     </div>
                   </div>
                   <div class="col-md-2">
@@ -78,7 +78,7 @@
                       <td>{{ audio.name }}</td>
                       <td>
                         <button type="button" class="btn btn-danger" title="ลบ" onclick="return removeAudio({{ audio.id }})"><i class="bx bxs-trash"></i></button>
-                        <button type="button" class="btn btn-info" title="เล่นเสียง" onclick="return playAudio({{ audio.id }})"><i class="bx bx-play-circle"></i></button>
+                        <button type="button" class="btn btn-info play-audio-btn" title="เล่นเสียง" data-id="{{ audio.id }}"><i class="bx bx-play-circle"></i></button>
                       </td>
                     </tr>
                   {% endfor %}
@@ -149,69 +149,66 @@
       return false // Prevent default action of the button
     }
     
-    function playAudio(audioId) {
+    async function playAudio(audioId) {
       const csrftoken = getCookie('csrftoken')
-      fetch(`/play_audio/${audioId}/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken
-        }
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`)
+    
+      try {
+        const response = await fetch(`/play_audio/${audioId}/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
           }
-          return response.json()
-        })
-        .then((data) => {
-          console.log('Audio played successfully:', data)
-          // Optionally, update the UI or perform other actions upon successful deletion
-          //location.reload();
-        })
-        .catch((error) => {
-          console.error('Error deleting schedule:', error)
-          // Handle errors or display an error message to the user
         })
     
-      return false // Prevent default action of the button
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`)
+        }
+    
+        const data = await response.json()
+        console.log('Audio played successfully:', data)
+    
+        return data // ส่งข้อมูลกลับ ถ้าจำเป็นต้องใช้
+      } catch (error) {
+        console.error('Error playing audio:', error)
+        return null // ส่งค่า null ถ้าเกิดข้อผิดพลาด
+      }
     }
     
-    document.getElementById("uploadForm").addEventListener("submit", function(event) {
-      event.preventDefault();
+    document.getElementById('uploadForm').addEventListener('submit', function (event) {
+      event.preventDefault()
     
-      let fileInput = document.getElementById("file_upload");
-      let file = fileInput.files[0];
+      let fileInput = document.getElementById('file_upload')
+      let file = fileInput.files[0]
     
       if (!file) {
-        alert("กรุณาเลือกไฟล์ก่อนอัพโหลด!");
-        return;
+        alert('กรุณาเลือกไฟล์ก่อนอัพโหลด!')
+        return
       }
     
-      if (!file.name.endsWith(".mp3") && !file.name.endsWith(".wav")) {
-        alert("กรุณาเลือกไฟล์ MP3 และ Wave เท่านั้น!");
-        return;
+      if (!file.name.endsWith('.mp3') && !file.name.endsWith('.wav')) {
+        alert('กรุณาเลือกไฟล์ MP3 และ Wave เท่านั้น!')
+        return
       }
     
-      let formData = new FormData();
-      formData.append("file", file);
+      let formData = new FormData()
+      formData.append('file', file)
     
-      fetch("/api/upload/", {
-        method: "POST",
+      fetch('/api/upload/', {
+        method: 'POST',
         body: formData
       })
-      .then(response => response.json())
-      .then(result => {
-        alert("อัพโหลดสำเร็จ: " + result.message);
-        location.reload()
-      })
-      .catch(error => {
-        alert("เกิดข้อผิดพลาด!");
-        console.error("Error:", error);
-      });
-    });
+        .then((response) => response.json())
+        .then((result) => {
+          alert('อัพโหลดสำเร็จ: ' + result.message)
+          location.reload()
+        })
+        .catch((error) => {
+          alert('เกิดข้อผิดพลาด!')
+          console.error('Error:', error)
+        })
+    })
     
-
     document.getElementById('speech_form').addEventListener('submit', function (event) {
       event.preventDefault()
       const inputText = document.getElementById('inputText').value
@@ -246,6 +243,27 @@
           submitButton.disabled = false
           submitButton.innerHTML = originalText // Restore the original button text
         })
+    })
+    
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.play-audio-btn').forEach((button) => {
+        button.addEventListener('click', async function () {
+          const audioId = this.getAttribute('data-id')
+          const icon = this.querySelector('i') // ดึงไอคอนภายในปุ่ม
+    
+          // เปลี่ยนเป็นไอคอนหยุดก่อนเล่น
+          icon.classList.replace('bx-play-circle', 'bx-stop-circle')
+    
+          try {
+            await playAudio(audioId) // รอให้ playAudio ทำงานเสร็จ
+          } catch (error) {
+            console.error('Error playing audio:', error)
+          } finally {
+            // เปลี่ยนกลับเป็นไอคอนเล่น ไม่ว่าฟังก์ชันจะสำเร็จหรือล้มเหลว
+            icon.classList.replace('bx-stop-circle', 'bx-play-circle')
+          }
+        })
+      })
     })
   </script>
 {% endblock %}
