@@ -28,6 +28,7 @@
             <div class="card-body">
               <h5 class="card-title">อัพโหลดเสียง</h5>
               <form action="POST" id="uploadForm">
+                {% csrf_token %}
                 <div class="row mb-3">
                   <label for="inputText" class="col-md-3 col-form-label"><strong>เพิ่มเสียงจากเครื่องคอมพิวเตอร์</strong></label>
                   <div class="col-md-4">
