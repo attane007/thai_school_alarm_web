@@ -40,6 +40,13 @@
                     <button type="submit" class="btn btn-success" title="เพิ่ม"><i class="bx bxs-cloud-upload"></i> อัพโหลด</button>
                   </div>
                 </div>
+                <div class="row mb-3">
+                  <div class="col-md-12">
+                    <div class="progress" style="height: 20px; display: none;" id="uploadProgressContainer">
+                      <div class="progress-bar" id="uploadProgressBar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                  </div>
+                </div>
               </form>
             </div>
           </div>
@@ -194,10 +201,41 @@
       let formData = new FormData()
       formData.append('file', file)
     
+      const progressContainer = document.getElementById('uploadProgressContainer')
+      const progressBar = document.getElementById('uploadProgressBar')
+      progressContainer.style.display = 'block'
+    
       fetch('/api/upload/', {
         method: 'POST',
         body: formData
       })
+        .then((response) => {
+          const reader = response.body.getReader()
+          const contentLength = response.headers.get('Content-Length')
+    
+          let receivedLength = 0
+          return new Response(
+            new ReadableStream({
+              start(controller) {
+                function read() {
+                  reader.read().then(({ done, value }) => {
+                    if (done) {
+                      controller.close()
+                      return
+                    }
+                    receivedLength += value.length
+                    const progress = Math.round((receivedLength / contentLength) * 100)
+                    progressBar.style.width = progress + '%'
+                    progressBar.innerHTML = progress + '%'
+                    controller.enqueue(value)
+                    read()
+                  })
+                }
+                read()
+              }
+            })
+          )
+        })
         .then((response) => response.json())
         .then((result) => {
           alert('อัพโหลดสำเร็จ: ' + result.message)
@@ -206,6 +244,9 @@
         .catch((error) => {
           alert('เกิดข้อผิดพลาด!')
           console.error('Error:', error)
+        })
+        .finally(() => {
+          progressContainer.style.display = 'none'
         })
     })
     
