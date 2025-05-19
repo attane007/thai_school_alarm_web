@@ -237,10 +237,10 @@
                     </td>
                     <td>
                       {% if schedule.tell_time %}
-                      <i class="bx bxs-check-circle"></i>
+                        <i class="bx bxs-check-circle text-success"></i>
                       {% else %}
-                      <i class="bx bxs-x-circle"></i>
-                      {% endif %} {{ schedule.tell_time }}
+                        <i class="bx bxs-x-circle text-danger"></i>
+                      {% endif %}
                     </td>
                     <td>
                       <button type="button" class="btn btn-danger" title="ลบ" onclick="return removeSchedule({{schedule.id}})"><i class='bx bxs-trash'></i></button>
