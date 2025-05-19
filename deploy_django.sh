@@ -128,7 +128,8 @@ After=network.target
 User=$USER
 Group=$USER
 WorkingDirectory=$PROJECT_DIR
-ExecStart=$VENV_DIR/bin/celery -A thai_school_alarm_web worker --loglevel=info
+# ตั้ง concurrency=1 เพื่อป้องกันเสียงซ้อนและ race condition
+ExecStart=$VENV_DIR/bin/celery -A thai_school_alarm_web worker --loglevel=info --concurrency=1
 Restart=always
 
 [Install]

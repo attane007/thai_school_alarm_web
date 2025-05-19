@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/update/', views.api_update, name='api_update'),
     path('api/process/<str:process_id>/', views.api_process, name='api_process'),
     path('api/upload/', views.upload_file, name='upload_file'),
+    path("stop_audio/", views.stop_audio, name="stop_audio"),
 ]
 
 if settings.DEBUG:

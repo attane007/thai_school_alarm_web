@@ -26,7 +26,7 @@ volumes:
   #   build:
   #     context: .
   #   container_name: celery
-  #   command: celery -A thai_school_alarm_web worker -l info --autoscale 10,3
+  #   command: celery -A thai_school_alarm_web worker -l info --concurrency=1
   #   volumes:
   #     - .:/app
   #   depends_on:

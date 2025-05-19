@@ -1,8 +1,18 @@
 {
-    "version": "1.5.0",
-    "release_date": "2025-04-06",
+    "version": "1.6.0",
+    "release_date": "2025-05-20",
     "changelog": [
-        "๊Add progress bar to the file upload"
+        "feat: add enable_bell_sound field to Schedule model and update related views and templates",
+        "feat: enhance test coverage for audio upload and processing views",
+        "feat: add CSRF_TRUSTED_ORIGINS setting for enhanced security",
+        "feat: add CSRF token to audio upload form for security",
+        "change version",
+        "feat: add upload progress indicator for audio file uploads",
+        "feat: enhance audio playback functionality and improve file upload handling",
+        "feat: update Celery settings and add ignored files",
+        "update audio files for improved quality",
+        "change audio",
+        "feat: add new Thai audio file"
     ],
-    "python_version":["3.10.16 - 3.12.8"]
+    "python_version": ["3.10.16 - 3.12.8"]
 }

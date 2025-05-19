@@ -8,6 +8,8 @@ import logging
 import subprocess
 from celery.schedules import crontab
 import os
+import signal
+import threading
 
 logger = get_task_logger(__name__)
 
@@ -58,40 +60,70 @@ def check_schedule():
     return f"Checked schedules at {current_time} for hour {hour} and minute {minute}"
 
 
-processes = []
+current_process = None
+play_thread = None
+stop_event = threading.Event()
 
 @app.task
 def play_sound(sound_paths=[]):
-    global processes
+    global current_process, play_thread, stop_event
 
+    # ถ้ามีแค่ 1 เพลง ให้ต่อเสียงระฆังหัว-ท้าย
     if not sound_paths:
         sound_paths = ['audio/bell/sound1/First.wav', 'audio/bell/sound2/First.wav', 'audio/bell/sound3/First.wav']
-    else:
-        if len(sound_paths) == 1:
-            sound_paths = ['audio/bell/sound1/First.wav', sound_paths[0], 'audio/bell/sound1/First.wav']
+    elif len(sound_paths) == 1:
+        sound_paths = ['audio/bell/sound1/First.wav', sound_paths[0], 'audio/bell/sound1/First.wav']
 
-    try:
-        # หยุดเสียงที่กำลังเล่นก่อน (ถ้ามี)
-        stop_sound()
-
+    def play_sequence():
+        global current_process, stop_event
         for path in sound_paths:
+            if stop_event.is_set():
+                break
             command = ['ffplay', '-nodisp', '-autoexit', path]
-            process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            processes.append(process)
-            process.wait()  # รอให้เล่นจบก่อนเริ่มไฟล์ถัดไป
+            try:
+                if os.name == 'nt':
+                    current_process = subprocess.Popen(
+                        command,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                    )
+                else:
+                    current_process = subprocess.Popen(
+                        command,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+                current_process.wait()
+            except Exception as e:
+                logging.error(f"Error playing {path}: {e}")
+            finally:
+                current_process = None
+        stop_event.clear()
+        logging.info("Finished playing all sounds.")
 
-        logging.info("Successfully played all sounds.")
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
+    stop_sound()  # หยุดเสียงที่กำลังเล่นก่อน (ถ้ามี)
+    stop_event.clear()
+    play_thread = threading.Thread(target=play_sequence, daemon=True)
+    play_thread.start()
+    logging.info("Started play_sound thread.")
 
 def stop_sound():
-    """ หยุดเสียงที่กำลังเล่นอยู่ """
-    global processes
-    for process in processes:
-        if process.poll() is None:  # ถ้าโปรเซสยังทำงานอยู่
-            process.terminate()  # ส่งสัญญาณให้หยุด
-    processes = []  # ล้างรายการโปรเซส
-    logging.info("Stopped playing sounds.")
+    global current_process, play_thread, stop_event
+    stop_event.set()
+    if current_process and current_process.poll() is None:
+        try:
+            if os.name == 'nt':
+                current_process.send_signal(signal.CTRL_BREAK_EVENT)
+            else:
+                current_process.terminate()
+        except Exception:
+            try:
+                current_process.kill()
+            except Exception:
+                pass
+    current_process = None
+    logging.info("Stopped current playing sound.")
 
 app.conf.beat_schedule = {
     'run_schedule':{

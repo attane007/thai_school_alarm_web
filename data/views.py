@@ -20,6 +20,7 @@ from functools import wraps
 from decouple import Config,RepositoryEnv
 from django.conf import settings
 from data.lib.process import is_process_running
+from .tasks import stop_sound
 
 def check_env_file(view_func):
     """Decorator to check if the .env file exists and required variables are set."""
@@ -198,6 +199,11 @@ def play_audio(request, audio_id):
         return JsonResponse({'error': f'Error playing audio: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Audio played successfully.'})
+
+@require_http_methods(["POST"])
+def stop_audio(request):
+    stop_sound()
+    return JsonResponse({'message': 'Stopped playing sound.'})
 
 @require_http_methods(["DELETE"])
 def delete_schedule(request, schedule_id):

@@ -76,6 +76,7 @@
                   <tr>
                     <th class="text-center">ลำดับที่</th>
                     <th>ชื่อ</th>
+                    <th class="text-center">เล่น/หยุด</th>
                     <th class="text-center">จัดการ</th>
                   </tr>
                 </thead>
@@ -84,9 +85,12 @@
                     <tr>
                       <td class="text-center">{{ forloop.counter }}</td>
                       <td>{{ audio.name }}</td>
-                      <td>
-                        <button type="button" class="btn btn-danger" title="ลบ" onclick="return removeAudio({{ audio.id }})"><i class="bx bxs-trash"></i></button>
+                      <td class="text-center">
                         <button type="button" class="btn btn-info play-audio-btn" title="เล่นเสียง" data-id="{{ audio.id }}"><i class="bx bx-play-circle"></i></button>
+                        <button type="button" class="btn btn-warning stop-audio-btn" title="หยุดเสียง" data-id="{{ audio.id }}"><i class="bx bx-stop-circle"></i></button>
+                      </td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-danger" title="ลบ" onclick="return removeAudio({{ audio.id }})"><i class="bx bxs-trash"></i></button>
                       </td>
                     </tr>
                   {% endfor %}
@@ -181,6 +185,11 @@
         console.error('Error playing audio:', error)
         return null // ส่งค่า null ถ้าเกิดข้อผิดพลาด
       }
+    }
+
+    async function stopAudio() {
+      // เรียก API เพื่อหยุดเสียง
+      await fetch('/stop_audio/', { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') } });
     }
     
     document.getElementById('uploadForm').addEventListener('submit', function (event) {
@@ -306,6 +315,11 @@
           }
         })
       })
+      document.querySelectorAll('.stop-audio-btn').forEach((button) => {
+        button.addEventListener('click', async function () {
+          await stopAudio();
+        });
+      });
     })
   </script>
 {% endblock %}
