@@ -28,8 +28,8 @@ if [ $EXIT_CODE -eq 0 ]; then
     # ✅ ใช้ `exec` เพื่อให้ log ครบทุกบรรทัด
     if [ -f "$RELOAD_SCRIPT" ]; then
         log_message "🔄 Running reload script: $RELOAD_SCRIPT"
-        chmod +x "$RELOAD_SCRIPT"
-        exec "$RELOAD_SCRIPT" 2>&1 | tee -a "$STATUS_FILE"
+        # เรียกผ่าน bash โดยตรงเพื่อไม่ต้องพึ่งสิทธิ์ execute
+        exec bash "$RELOAD_SCRIPT" 2>&1 | tee -a "$STATUS_FILE"
     else
         log_message "⚠️ Reload script not found!"
     fi
