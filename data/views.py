@@ -67,7 +67,7 @@ def save_form(request):
             hour = request.POST.get('hour')
             minute = request.POST.get('minute')
             tell_time = request.POST.get('tellTime')
-            # Use getlist for multi-select fields
+            enable_bell_sound = request.POST.get('enable_bell_sound')  # new field
             selected_days = request.POST.getlist('day')
             selected_sound = request.POST.get('sound')
             selected_bell_sound = request.POST.get('bellSound')
@@ -80,16 +80,14 @@ def save_form(request):
                 return JsonResponse({'error': 'Invalid time format. Must be in HH:MM format.'}, status=400)
 
             schedule = Schedule(
-                # Assuming hour and minute are integers from form
                 time=time_obj.time(),
-                tell_time=tell_time == '1',  # Convert tellTime string to boolean
-                sound=Audio.objects.get(pk=selected_sound),  # Get Audio object
-                bell_sound=Bell.objects.get(
-                    pk=selected_bell_sound)  # Get Bell object
+                tell_time=tell_time == '1',
+                enable_bell_sound=enable_bell_sound == '1',
+                sound=Audio.objects.get(pk=selected_sound) if selected_sound else None,
+                bell_sound=Bell.objects.get(pk=selected_bell_sound) if enable_bell_sound == '1' and selected_bell_sound else None
             )
             schedule.save()
 
-            # Example: Add selected days to Schedule using ManyToMany relationship
             for day_id in selected_days:
                 day = Day.objects.get(pk=day_id)
                 schedule.notification_days.add(day)
@@ -418,8 +416,8 @@ def get_current_version(request):
 
 
 STATUS_FILE = "process_status.log"
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Django root path
-SCRIPT_PATH = os.path.join(BASE_DIR, "scripts/update_script.sh")
+SCRIPT_PATH = os.path.join(settings.BASE_DIR, "scripts/update_script.sh")
+STATUS_FILE_PATH = os.path.join(settings.BASE_DIR, STATUS_FILE) # Full path for status file
 
 
 @require_http_methods(["GET"])
@@ -445,28 +443,36 @@ def api_update(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 @require_http_methods(["GET"])
-def api_process(request, process_id):
+def api_process(request, process_id): # Changed parameter name here
     if platform.system() == "Windows":
-        return JsonResponse({"error": "Windows is not supported"}, status=400)
-
-    # ตรวจสอบว่า process กำลังทำงานอยู่หรือไม่
-    if not is_process_running(process_id):
-        return JsonResponse({"success": "No process in progress"}, status=200)
-
-    # ถ้า process ทำงานอยู่ ให้ตรวจสอบไฟล์สถานะ
-    if not os.path.exists(STATUS_FILE):
-        return JsonResponse({"error": "No process in progress"}, status=404)
+        return JsonResponse({"error": "Windows is not supported for this feature"}, status=400)
 
     try:
-        with open(STATUS_FILE, "r") as f:
-            status_data = f.read().strip()  # อ่านข้อมูลและลบช่องว่าง/ขึ้นบรรทัดใหม่ส่วนเกิน
-        
-        if not status_data:
-            return JsonResponse({"success": "No process in progress"}, status=200)
+        pid = int(process_id)
+    except ValueError:
+        return JsonResponse({"error": "Invalid process ID format"}, status=400)
 
-        return JsonResponse({"status": "running","log":status_data}, status=200)
-    except IOError:
-        return JsonResponse({"error": "Failed to read status file"}, status=500)
+    log_content = "No log data available."
+    process_active = is_process_running(pid)
+
+    if os.path.exists(STATUS_FILE_PATH):
+        try:
+            with open(STATUS_FILE_PATH, "r") as f:
+                log_content = f.read().strip()
+                if not log_content: # If file exists but is empty
+                    log_content = "Log file is empty. Process might be starting or has finished without output."
+        except IOError:
+            log_content = "Failed to read status file."
+    else:
+        if process_active:
+            log_content = "Process is running, but log file has not been created yet."
+        else:
+            log_content = "Process is not running and no log file found."
+
+    if process_active:
+        return JsonResponse({"status": "running", "log": log_content}, status=200)
+    else:
+        return JsonResponse({"status": "completed_or_not_found", "log": log_content}, status=200)
 
 @csrf_exempt
 def upload_file(request):

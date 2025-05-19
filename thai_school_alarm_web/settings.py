@@ -28,10 +28,14 @@ SECRET_KEY = config('SECRET_KEY', default='xxx')
 is_windows = platform.system() == "Windows"
 DEBUG = config('DEBUG', default=is_windows, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
+# ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
+# if '*' in ALLOWED_HOSTS:
+#     ALLOWED_HOSTS = ['*']
+
+raw_allowed_hosts = config('ALLOWED_HOSTS', default='*')
+ALLOWED_HOSTS = [host.strip() for host in raw_allowed_hosts.split(',')]
 if '*' in ALLOWED_HOSTS:
     ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 

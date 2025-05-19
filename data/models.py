@@ -31,6 +31,7 @@ class Schedule(models.Model):
     sound = models.ForeignKey(Audio, on_delete=models.SET_NULL, null=True, blank=True)
     bell_sound = models.ForeignKey(Bell, on_delete=models.SET_NULL, null=True, blank=True)  # เสียงระฆัง
     tell_time = models.BooleanField(default=True)
+    enable_bell_sound = models.BooleanField(default=True)  # เพิ่ม field นี้
     def __str__(self):
         return f"Schedule {self.id}"
     
