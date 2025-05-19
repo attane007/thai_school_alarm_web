@@ -1,0 +1,14 @@
+[Unit]
+Description=Celery Worker for Thai School Alarm
+After=network.target
+
+[Service]
+User=${USER}
+Group=${USER}
+WorkingDirectory=${PROJECT_DIR}
+# ตั้ง concurrency=1 เพื่อป้องกันเสียงซ้อนและ race condition
+ExecStart=${VENV_DIR}/bin/celery -A thai_school_alarm_web worker --loglevel=info --concurrency=1
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

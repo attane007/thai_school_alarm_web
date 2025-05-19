@@ -1,0 +1,13 @@
+[Unit]
+Description=Celery Beat Scheduler for Thai School Alarm
+After=network.target
+
+[Service]
+User=${USER}
+Group=${USER}
+WorkingDirectory=${PROJECT_DIR}
+ExecStart=${VENV_DIR}/bin/celery -A thai_school_alarm_web beat --loglevel=info
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
