@@ -1,19 +1,17 @@
 {
-    "version": "1.6.5",
+    "version": "1.6.6",
     "release_date": "2025-05-20",
     "changelog": [
-        "refactor: use systemd service templates for celery worker/beat and reload with envsubst",
-        "feat: add auto-recovery for systemd service update failure in reload script",
-        "fix: ensure celery worker always runs with --concurrency=1 for sound reliability",
+        "feat: enhance audio upload process with XMLHttpRequest for better progress tracking",
+        "feat: add CSRF and Cloudflare Tunnel settings for enhanced security",
+        "fix: change execution method for reload script to avoid permission issues",
+        "feat: update schedule status icons to include color indicators for better visibility",
         "feat: add enable_bell_sound field to Schedule model and update related views and templates",
         "feat: enhance test coverage for audio upload and processing views",
         "feat: add CSRF_TRUSTED_ORIGINS setting for enhanced security",
         "feat: add CSRF token to audio upload form for security",
         "feat: add upload progress indicator for audio file uploads",
-        "feat: enhance audio playback functionality and improve file upload handling",
-        "feat: update Celery settings and add ignored files",
-        "update audio files for improved quality",
-        "feat: add new Thai audio file"
+        "feat: enhance audio playback functionality and improve file upload handling"
     ],
     "python_version": ["3.10.16 - 3.12.8"]
 }
