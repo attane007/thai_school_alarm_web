@@ -151,9 +151,16 @@ CELERY_TIMEZONE = 'UTC'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 
-# CSRF_COOKIE_SECURE=True
-# SESSION_COOKIE_SECURE=True
+# CSRF/Cloudflare Tunnel settings
+# หากใช้ Cloudflare Tunnel ให้เพิ่มโดเมนที่ได้จาก Cloudflare Tunnel เช่น
+# CSRF_TRUSTED_ORIGINS = [
+#     'https://your-tunnel-url.trycloudflare.com',
+#     'http://localhost:8000',
+# ]
+# หรือใช้ config เช่นเดิม (แนะนำให้เพิ่มโดเมน Cloudflare Tunnel ใน .env ด้วย)
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000').split(',')
 
-CSRF_TRUSTED_ORIGINS =config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000').split(',')
+# ช่วยให้ Django รู้ว่า request ที่มาจาก Cloudflare เป็น HTTPS จริง
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CORS_ALLOW_ALL_ORIGINS = True
