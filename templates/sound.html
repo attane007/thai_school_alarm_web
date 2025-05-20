@@ -194,70 +194,62 @@
     
     document.getElementById('uploadForm').addEventListener('submit', function (event) {
       event.preventDefault()
-    
+
       let fileInput = document.getElementById('file_upload')
       let file = fileInput.files[0]
-    
+
       if (!file) {
         alert('กรุณาเลือกไฟล์ก่อนอัพโหลด!')
         return
       }
-    
+
       if (!file.name.endsWith('.mp3') && !file.name.endsWith('.wav')) {
         alert('กรุณาเลือกไฟล์ MP3 และ Wave เท่านั้น!')
         return
       }
-    
+
       let formData = new FormData()
       formData.append('file', file)
-    
+
       const progressContainer = document.getElementById('uploadProgressContainer')
       const progressBar = document.getElementById('uploadProgressBar')
       progressContainer.style.display = 'block'
-    
-      fetch('/api/upload/', {
-        method: 'POST',
-        body: formData
-      })
-        .then((response) => {
-          const reader = response.body.getReader()
-          const contentLength = response.headers.get('Content-Length')
-    
-          let receivedLength = 0
-          return new Response(
-            new ReadableStream({
-              start(controller) {
-                function read() {
-                  reader.read().then(({ done, value }) => {
-                    if (done) {
-                      controller.close()
-                      return
-                    }
-                    receivedLength += value.length
-                    const progress = Math.round((receivedLength / contentLength) * 100)
-                    progressBar.style.width = progress + '%'
-                    progressBar.innerHTML = progress + '%'
-                    controller.enqueue(value)
-                    read()
-                  })
-                }
-                read()
-              }
-            })
-          )
-        })
-        .then((response) => response.json())
-        .then((result) => {
-          alert('อัพโหลดสำเร็จ: ' + result.message)
-          location.reload()
-        })
-        .catch((error) => {
-          alert('เกิดข้อผิดพลาด!')
-          console.error('Error:', error)
-        })
-        .finally(() => {
-          progressContainer.style.display = 'none'
-        })
+      progressBar.style.width = '0%'
+      progressBar.innerHTML = '0%'
+
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', '/api/upload/', true)
+
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+          const percentComplete = Math.round((e.loaded / e.total) * 100)
+          progressBar.style.width = percentComplete + '%'
+          progressBar.innerHTML = percentComplete + '%'
+        }
+      }
+
+      xhr.onload = function () {
+        progressContainer.style.display = 'none'
+        if (xhr.status === 200) {
+          try {
+            const result = JSON.parse(xhr.responseText)
+            alert('อัพโหลดสำเร็จ: ' + result.message)
+            location.reload()
+          } catch (e) {
+            alert('อัพโหลดสำเร็จ')
+            location.reload()
+          }
+        } else {
+          alert('เกิดข้อผิดพลาดในการอัพโหลด!')
+        }
+      }
+
+      xhr.onerror = function () {
+        progressContainer.style.display = 'none'
+        alert('เกิดข้อผิดพลาดในการเชื่อมต่อ!')
+      }
+
+      xhr.send(formData)
     })
     
     document.getElementById('speech_form').addEventListener('submit', function (event) {
