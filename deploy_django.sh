@@ -45,6 +45,71 @@ check_python_version
 echo "Installing required packages..."
 sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential ffmpeg rabbitmq-server
 
+# Function to find and modify cmdline.txt
+modify_cmdline_txt() {
+    echo "Searching for cmdline.txt file..."
+    
+    # Common locations for cmdline.txt
+    CMDLINE_PATHS=(
+        "/boot/cmdline.txt"
+        "/boot/firmware/cmdline.txt"
+        "/proc/cmdline"
+    )
+    
+    CMDLINE_FILE=""
+    
+    # Search for cmdline.txt in common locations
+    for path in "${CMDLINE_PATHS[@]}"; do
+        if [ -f "$path" ] && [ -w "$path" ]; then
+            CMDLINE_FILE="$path"
+            echo "Found writable cmdline.txt at: $CMDLINE_FILE"
+            break
+        elif [ -f "$path" ]; then
+            echo "Found cmdline.txt at: $path (but not writable)"
+        fi
+    done
+    
+    # If not found in common locations, try to find it
+    if [ -z "$CMDLINE_FILE" ]; then
+        echo "Searching for cmdline.txt in filesystem..."
+        FOUND_FILES=$(find /boot /proc -name "cmdline.txt" 2>/dev/null | head -5)
+        for file in $FOUND_FILES; do
+            if [ -w "$file" ]; then
+                CMDLINE_FILE="$file"
+                echo "Found writable cmdline.txt at: $CMDLINE_FILE"
+                break
+            fi
+        done
+    fi
+    
+    # Modify cmdline.txt if found
+    if [ -n "$CMDLINE_FILE" ]; then
+        echo "Modifying $CMDLINE_FILE..."
+        
+        # Check if systemd.network-online.target=off already exists
+        if grep -q "systemd.network-online.target=off" "$CMDLINE_FILE"; then
+            echo "systemd.network-online.target=off already exists in $CMDLINE_FILE"
+        else
+            echo "Adding systemd.network-online.target=off to $CMDLINE_FILE"
+            # Create backup
+            sudo cp "$CMDLINE_FILE" "${CMDLINE_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
+            
+            # Add systemd.network-online.target=off to the end of the line
+            sudo sed -i 's/$/ systemd.network-online.target=off/' "$CMDLINE_FILE"
+            
+            echo "Successfully modified $CMDLINE_FILE"
+            echo "Backup created at ${CMDLINE_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
+            echo "Note: You may need to reboot for changes to take effect"
+        fi
+    else
+        echo "Warning: cmdline.txt not found or not writable. Skipping modification."
+        echo "You may need to manually add 'systemd.network-online.target=off' to your boot parameters."
+    fi
+}
+
+# Call the function to modify cmdline.txt
+modify_cmdline_txt
+
 # Enable and start RabbitMQ
 sudo systemctl enable rabbitmq-server
 sudo systemctl start rabbitmq-server
