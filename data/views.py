@@ -437,7 +437,7 @@ def api_update(request):
         
         # รัน shell script
         process = subprocess.Popen(
-            [SCRIPT_PATH], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True
+            [SCRIPT_PATH], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True, cwd=settings.BASE_DIR
         )
 
         return JsonResponse({
