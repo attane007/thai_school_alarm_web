@@ -472,10 +472,39 @@
       }
 
       function openTerminalModal() {
-        const modalEl = document.getElementById('terminalModal');
-        if (!modalEl) return;
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
+          // Always hide updateModal before showing terminalModal
+          try {
+            const updateModalEl = document.getElementById('updateModal');
+            if (updateModalEl) {
+              const updModal = bootstrap.Modal.getInstance(updateModalEl) || new bootstrap.Modal(updateModalEl);
+              updModal.hide();
+            }
+          } catch (e) {}
+          // Hide terminalModal first (if open), then show
+          const modalEl = document.getElementById('terminalModal');
+          if (!modalEl) return;
+          let modal = bootstrap.Modal.getInstance(modalEl);
+          if (!modal) modal = new bootstrap.Modal(modalEl);
+          modal.hide();
+          setTimeout(() => modal.show(), 100); // Small delay to ensure hide takes effect
+      function openUpdateModal() {
+        // Always hide terminalModal before showing updateModal
+        try {
+          const termModalEl = document.getElementById('terminalModal');
+          if (termModalEl) {
+            const termModal = bootstrap.Modal.getInstance(termModalEl) || new bootstrap.Modal(termModalEl);
+            termModal.hide();
+          }
+        } catch (e) {}
+        const updateModalEl = document.getElementById('updateModal');
+        if (!updateModalEl) return;
+        let updModal = bootstrap.Modal.getInstance(updateModalEl);
+        if (!updModal) updModal = new bootstrap.Modal(updateModalEl);
+        updModal.hide();
+        setTimeout(() => updModal.show(), 100);
+      }
+
+      function updateModal(){
       }
 
       function startLogPolling(pid) {
@@ -531,7 +560,7 @@
         check_version();
       } else {
         console.log('Skipping update check. Already checked today.')
-        updateModal();
+          openUpdateModal(); // This is the old function, but you should call openUpdateModal() to ensure only one modal is open
       }
 
 
@@ -541,17 +570,24 @@
           this.disabled = true;
           this.innerHTML = 'Updating...';
 
-          // Hide update modal and show terminal modal immediately
+          // Hide both modals, then show terminal modal
           try {
             const updateModalEl = document.getElementById('updateModal');
             if (updateModalEl) {
               const updModal = bootstrap.Modal.getInstance(updateModalEl) || new bootstrap.Modal(updateModalEl);
               updModal.hide();
             }
+            const termModalEl = document.getElementById('terminalModal');
+            if (termModalEl) {
+              const termModal = bootstrap.Modal.getInstance(termModalEl) || new bootstrap.Modal(termModalEl);
+              termModal.hide();
+            }
           } catch (e) { /* no-op */ }
 
-          openTerminalModal();
-          updateTerminal('Starting update...');
+          setTimeout(() => {
+            openTerminalModal();
+            updateTerminal('Starting update...');
+          }, 100);
         
           // ส่งคำขอไปที่ API /api/update/
           fetch('/api/update/')
