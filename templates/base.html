@@ -489,13 +489,19 @@
             })
             .then(data => {
               updateTerminal(data.log || '');
+              if (data.status === 'completed_or_not_found') {
+                // Finished: clear storage and hard refresh
+                clearInterval(logPollingInterval);
+                logPollingInterval = null;
+                try { localStorage.clear(); } catch (e) {}
+                location.reload();
+                return;
+              }
               if (data.status && data.status !== 'running') {
-                // Finished or not found
+                // Any other non-running status: stop polling and cleanup
                 clearInterval(logPollingInterval);
                 logPollingInterval = null;
                 localStorage.removeItem('process_id');
-                // Refresh version indicators and badge
-                check_version();
               }
             })
             .catch(err => {
@@ -533,27 +539,33 @@
           // Disable button while request is being processed
           this.disabled = true;
           this.innerHTML = 'Updating...';
+
+          // Hide update modal and show terminal modal immediately
+          try {
+            const updateModalEl = document.getElementById('updateModal');
+            if (updateModalEl) {
+              const updModal = bootstrap.Modal.getInstance(updateModalEl) || new bootstrap.Modal(updateModalEl);
+              updModal.hide();
+            }
+          } catch (e) { /* no-op */ }
+
+          openTerminalModal();
+          updateTerminal('Starting update...');
         
           // ส่งคำขอไปที่ API /api/update/
           fetch('/api/update/')
             .then(response => response.json())
             .then(data => {
-              const codeEl = document.getElementById('terminalOutput');
-              if (codeEl) codeEl.textContent = 'Preparing to update...';
-
               if (data && data.process_id) {
                 // Save process_id and open terminal to stream logs
                 localStorage.setItem('process_id', data.process_id);
-                openTerminalModal();
                 startLogPolling(data.process_id);
               } else if (data && data.error) {
                 // Windows or other error
-                openTerminalModal();
                 updateTerminal(`Update cannot start: ${data.error}`);
                 this.disabled = false;
                 this.innerHTML = '<i class="bx bxs-cloud-download"></i> Update Now';
               } else {
-                openTerminalModal();
                 updateTerminal('Failed to start update.');
                 this.disabled = false;
                 this.innerHTML = '<i class="bx bxs-cloud-download"></i> Update Now';
@@ -561,7 +573,6 @@
             })
             .catch((error) => {
               console.error('Error:', error);
-              openTerminalModal();
               updateTerminal(`Error: ${error.message}`);
               // คืนสถานะของปุ่มถ้ามีข้อผิดพลาด
               this.disabled = false;
