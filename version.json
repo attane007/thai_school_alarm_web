@@ -1,17 +1,10 @@
 {
-    "version": "1.7.1",
+    "version": "1.7.2",
     "release_date": "2025-08-20",
     "changelog": [
-        "fix: update subprocess call in api_update to set working directory and improve terminal modal functionality",
-        "feat: add automatic detection and modification of cmdline.txt for improved boot performance",
-        "docs: update README to enhance project description and features",
-        "fix: comment out twisted-iocpsupport to prevent installation issues",
-        "fix: update requirements to include twisted-iocpsupport for compatibility",
-        "chore: update version to 1.6.6 and refine changelog entries",
-        "feat: enhance audio upload process with XMLHttpRequest for better progress tracking",
-        "feat: add CSRF and Cloudflare Tunnel settings for enhanced security",
-        "fix: change execution method for reload script to avoid permission issues",
-        "feat: update schedule status icons to include color indicators for better visibility"
+        "fix: enhance terminal modal handling during update process",
+        "chore: update version to 1.7.2 and refine changelog entries",
+        "feat: add CSRF and Cloudflare Tunnel settings for enhanced security"
     ],
     "python_version": ["3.10.16 - 3.12.8"]
 }
