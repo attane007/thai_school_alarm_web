@@ -370,7 +370,7 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['process_id'], 12345)
         self.mock_subprocess_run.assert_called_with(["chmod", "+x", expected_script_path_for_chmod], check=True)
-        self.mock_subprocess_popen.assert_called_with([expected_script_path_for_chmod], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+        self.mock_subprocess_popen.assert_called_with([expected_script_path_for_chmod], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True, cwd='/fake/basedir')
 
     def test_api_update_windows_not_supported(self):
         self.mock_platform_system.return_value = "Windows"
