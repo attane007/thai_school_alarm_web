@@ -1,13 +1,17 @@
 {
-    "version": "1.9.0",
+    "version": "1.10.0",
     "release_date": "2026-02-05",
     "changelog": [
-        "upgrade: Django upgraded from 6.0 to 6.0.2",
-        "upgrade: Updated all dependencies to latest versions",
-        "upgrade: Celery 5.6.0 to 5.6.2, cryptography 42.0.8 to 46.0.4",
-        "upgrade: Twisted 24.3.0 to 25.5.0, autobahn 23.6.2 to 25.12.2",
-        "upgrade: requests, urllib3, certifi, and other security packages",
-        "fix: Updated CI workflow to use Python 3.12 only (required by Django 6.0.2)"
+        "fix: add pytz dependency to requirements",
+        "fix: update WiFi Management message to include current OS detection",
+        "add WiFi Management API and configuration scripts",
+        "update version to 1.9.0 with complete package upgrade changelog",
+        "update CI workflow to use Python 3.12 only for Django 6.0.2 compatibility",
+        "upgrade Django and related packages to latest versions",
+        "fix: add missing comment for Rocket Loader in base.html",
+        "feat: add VSCode settings for Python interpreter path",
+        "fix: update version to 1.8.0 and modify changelog for recent upgrades",
+        "fix: update subprocess handling in view tests and refine requirements"
     ],
     "python_version": ["3.12.8+"]
 }
