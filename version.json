@@ -1,9 +1,13 @@
 {
-    "version": "1.8.0",
-    "release_date": "2025-12-08",
+    "version": "1.9.0",
+    "release_date": "2026-02-05",
     "changelog": [
-        "upgrade: Django upgraded from 5.1.7 to 6.0",
-        "upgrade: Updated Celery to 5.6.0, Daphne to 4.2.1, Redis to 7.1.0, and other dependencies"
+        "upgrade: Django upgraded from 6.0 to 6.0.2",
+        "upgrade: Updated all dependencies to latest versions",
+        "upgrade: Celery 5.6.0 to 5.6.2, cryptography 42.0.8 to 46.0.4",
+        "upgrade: Twisted 24.3.0 to 25.5.0, autobahn 23.6.2 to 25.12.2",
+        "upgrade: requests, urllib3, certifi, and other security packages",
+        "fix: Updated CI workflow to use Python 3.12 only (required by Django 6.0.2)"
     ],
-    "python_version": ["3.10.16 - 3.12.8"]
+    "python_version": ["3.12.8+"]
 }
