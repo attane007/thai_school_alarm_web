@@ -43,6 +43,7 @@ Pygments==2.19.2
 pyOpenSSL==25.3.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
+pytz==2025.1
 python-slugify==8.0.4
 PyYAML==6.0.3
 redis==7.1.0
