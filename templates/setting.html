@@ -288,7 +288,8 @@
           document.getElementById('tools-status').innerHTML = `<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> ยังไม่ได้ติดตั้งเครื่องมือบางรายการ<br><small>ขาดหายไป: ${data.missing_packages.join(', ')}</small></div>`;
           document.getElementById('tools-install').style.display = 'block';
         } else {
-          document.getElementById('tools-status').innerHTML = `<div class="alert alert-info"><i class="bi bi-info-circle"></i> WiFi Management รองรับเฉพาะ Ubuntu, Debian, และ Raspberry Pi OS</div>`;
+          document.getElementById('wifi-section').style.display = 'block';
+          document.getElementById('tools-status').innerHTML = `<div class="alert alert-info"><i class="bi bi-info-circle"></i> WiFi Management รองรับเฉพาะ Ubuntu, Debian, และ Raspberry Pi OS (ปัจจุบัน: ${navigator.userAgent.includes('Windows') ? 'Windows' : 'Unknown'})</div>`;
         }
       })
       .catch(error => console.error('Error checking system:', error));
