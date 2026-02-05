@@ -513,3 +513,331 @@ def upload_file(request):
         })
 
     return JsonResponse({"error": "อัพโหลดไม่สำเร็จ"}, status=400)
+
+
+# ============================================================================
+# WiFi Management API Endpoints
+# ============================================================================
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def system_check(request):
+    """ตรวจสอบสถานะการติดตั้งเครื่องมือระบบ"""
+    try:
+        from data.lib.system_check import get_installation_status
+        status = get_installation_status()
+        return JsonResponse(status)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def install_network_tools(request):
+    """ติดตั้งเครื่องมือที่จำเป็น"""
+    try:
+        from data.lib.system_check import install_all_missing_tools
+        
+        success, results = install_all_missing_tools()
+        
+        if success:
+            return JsonResponse({
+                'success': True,
+                'message': 'ติดตั้งเครื่องมือสำเร็จ',
+                'results': results
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'ติดตั้งบางรายการล้มเหลว',
+                'results': results
+            }, status=500)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def wifi_status(request):
+    """ดึงสถานะ WiFi ปัจจุบัน"""
+    try:
+        from data.lib.wifi_manager import get_current_wifi, check_internet_connectivity
+        from data.lib.ap_manager import is_ap_mode_active, get_ap_status
+        
+        current_wifi = get_current_wifi()
+        has_internet = check_internet_connectivity()
+        in_ap_mode = is_ap_mode_active()
+        
+        result = {
+            'connected': current_wifi is not None,
+            'wifi': current_wifi,
+            'has_internet': has_internet,
+            'ap_mode': in_ap_mode
+        }
+        
+        if in_ap_mode:
+            result['ap_status'] = get_ap_status()
+        
+        return JsonResponse(result)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def wifi_scan(request):
+    """สแกนหา WiFi networks"""
+    try:
+        from data.lib.wifi_manager import scan_wifi_networks
+        
+        networks = scan_wifi_networks()
+        
+        return JsonResponse({
+            'success': True,
+            'networks': networks,
+            'count': len(networks)
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def wifi_connect(request):
+    """เชื่อมต่อ WiFi"""
+    try:
+        from data.lib.wifi_manager import connect_to_wifi
+        
+        data = json.loads(request.body)
+        ssid = data.get('ssid')
+        password = data.get('password', '')
+        
+        if not ssid:
+            return JsonResponse({'error': 'กรุณาระบุ SSID'}, status=400)
+        
+        success, message = connect_to_wifi(ssid, password)
+        
+        if success:
+            return JsonResponse({
+                'success': True,
+                'message': message
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': message
+            }, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def wifi_disconnect(request):
+    """ตัดการเชื่อมต่อ WiFi"""
+    try:
+        from data.lib.wifi_manager import disconnect_wifi
+        
+        success, message = disconnect_wifi()
+        
+        return JsonResponse({
+            'success': success,
+            'message': message
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def wifi_forget(request):
+    """ลืม/ลบ WiFi network"""
+    try:
+        from data.lib.wifi_manager import forget_network
+        
+        data = json.loads(request.body)
+        ssid = data.get('ssid')
+        
+        if not ssid:
+            return JsonResponse({'error': 'กรุณาระบุ SSID'}, status=400)
+        
+        success, message = forget_network(ssid)
+        
+        return JsonResponse({
+            'success': success,
+            'message': message
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def ap_status(request):
+    """ดึงสถานะ Access Point"""
+    try:
+        from data.lib.ap_manager import get_ap_status, get_connected_clients
+        
+        status = get_ap_status()
+        
+        if status.get('active'):
+            status['clients_list'] = get_connected_clients()
+        
+        return JsonResponse(status)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def ap_start(request):
+    """เปิดโหมด Access Point"""
+    try:
+        from data.lib.ap_manager import start_ap_mode
+        
+        data = json.loads(request.body) if request.body else {}
+        ssid = data.get('ssid')
+        password = data.get('password')
+        channel = data.get('channel', 6)
+        
+        success, message, ap_info = start_ap_mode(ssid, password, channel)
+        
+        if success:
+            # บันทึก config
+            if ssid:
+                Utility.objects.update_or_create(
+                    name='ap_ssid',
+                    defaults={'value': ssid}
+                )
+            if ap_info.get('password'):
+                Utility.objects.update_or_create(
+                    name='ap_password',
+                    defaults={'value': ap_info['password']}
+                )
+            
+            return JsonResponse({
+                'success': True,
+                'message': message,
+                'ap_info': ap_info
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': message
+            }, status=500)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def ap_stop(request):
+    """ปิดโหมด Access Point"""
+    try:
+        from data.lib.ap_manager import stop_ap_mode
+        
+        success, message = stop_ap_mode()
+        
+        if success:
+            # ลบ fallback state
+            Utility.objects.filter(name='in_fallback_mode').delete()
+            Utility.objects.filter(name='wifi_back_time').delete()
+        
+        return JsonResponse({
+            'success': success,
+            'message': message
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET", "POST"])
+@csrf_exempt
+def ap_config(request):
+    """ดู/แก้ไข AP configuration"""
+    if request.method == 'GET':
+        try:
+            ap_ssid = Utility.objects.filter(name='ap_ssid').first()
+            ap_password = Utility.objects.filter(name='ap_password').first()
+            ap_channel = Utility.objects.filter(name='ap_channel').first()
+            
+            return JsonResponse({
+                'ssid': ap_ssid.value if ap_ssid else 'SchoolAlarm-Setup',
+                'password': ap_password.value if ap_password else '',
+                'channel': int(ap_channel.value) if ap_channel else 6
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    else:  # POST
+        try:
+            data = json.loads(request.body)
+            
+            if 'ssid' in data:
+                Utility.objects.update_or_create(
+                    name='ap_ssid',
+                    defaults={'value': data['ssid']}
+                )
+            
+            if 'password' in data:
+                Utility.objects.update_or_create(
+                    name='ap_password',
+                    defaults={'value': data['password']}
+                )
+            
+            if 'channel' in data:
+                Utility.objects.update_or_create(
+                    name='ap_channel',
+                    defaults={'value': str(data['channel'])}
+                )
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'บันทึกการตั้งค่าสำเร็จ'
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def wifi_monitor_toggle(request):
+    """เปิด/ปิด WiFi monitoring"""
+    try:
+        data = json.loads(request.body)
+        enabled = data.get('enabled', True)
+        
+        Utility.objects.update_or_create(
+            name='wifi_monitor_enabled',
+            defaults={'value': 'true' if enabled else 'false'}
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'enabled': enabled,
+            'message': f'{"เปิด" if enabled else "ปิด"}การตรวจสอบอัตโนมัติ'
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def wifi_monitor_status(request):
+    """ดึงสถานะ WiFi monitoring"""
+    try:
+        enabled = Utility.objects.filter(name='wifi_monitor_enabled').first()
+        in_fallback = Utility.objects.filter(name='in_fallback_mode').first()
+        last_ssid = Utility.objects.filter(name='last_known_ssid').first()
+        fallback_count = Utility.objects.filter(name='fallback_count').first()
+        last_fallback = Utility.objects.filter(name='last_fallback_time').first()
+        
+        return JsonResponse({
+            'enabled': enabled.value == 'true' if enabled else True,
+            'in_fallback_mode': in_fallback.value == 'true' if in_fallback else False,
+            'last_known_ssid': last_ssid.value if last_ssid else None,
+            'fallback_count': int(fallback_count.value) if fallback_count else 0,
+            'last_fallback_time': float(last_fallback.value) if last_fallback else None
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

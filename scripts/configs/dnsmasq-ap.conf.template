@@ -1,0 +1,8 @@
+interface={{interface}}
+bind-interfaces
+server=8.8.8.8
+server=1.1.1.1
+domain-needed
+bogus-priv
+dhcp-range={{dhcp_start}},{{dhcp_end}},12h
+address=/alarm.local/{{gateway_ip}}

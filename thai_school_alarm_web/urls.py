@@ -38,6 +38,21 @@ urlpatterns = [
     path('api/process/<str:process_id>/', views.api_process, name='api_process'),
     path('api/upload/', views.upload_file, name='upload_file'),
     path("stop_audio/", views.stop_audio, name="stop_audio"),
+    
+    # WiFi Management API
+    path('api/system/check/', views.system_check, name='system_check'),
+    path('api/system/install/', views.install_network_tools, name='install_network_tools'),
+    path('api/wifi/status/', views.wifi_status, name='wifi_status'),
+    path('api/wifi/scan/', views.wifi_scan, name='wifi_scan'),
+    path('api/wifi/connect/', views.wifi_connect, name='wifi_connect'),
+    path('api/wifi/disconnect/', views.wifi_disconnect, name='wifi_disconnect'),
+    path('api/wifi/forget/', views.wifi_forget, name='wifi_forget'),
+    path('api/wifi/monitor/toggle/', views.wifi_monitor_toggle, name='wifi_monitor_toggle'),
+    path('api/wifi/monitor/status/', views.wifi_monitor_status, name='wifi_monitor_status'),
+    path('api/ap/status/', views.ap_status, name='ap_status'),
+    path('api/ap/start/', views.ap_start, name='ap_start'),
+    path('api/ap/stop/', views.ap_stop, name='ap_stop'),
+    path('api/ap/config/', views.ap_config, name='ap_config'),
 ]
 
 if settings.DEBUG:

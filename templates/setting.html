@@ -45,6 +45,185 @@
         </div>
       </div>
     </div>
+
+    <!-- WiFi Management Section -->
+    <div class="row" id="wifi-section" style="display: none;">
+      <div class="col-lg-12">
+        
+        <!-- Fallback Mode Banner -->
+        <div class="alert alert-warning alert-dismissible fade show" id="fallback-banner" style="display: none;" role="alert">
+          <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> โหมดฉุกเฉิน</h4>
+          <p>ระบบกำลังทำงานเป็น Access Point เนื่องจากการเชื่อมต่อ WiFi หลุด</p>
+          <p class="mb-0">คุณสามารถตั้งค่า WiFi ใหม่ได้ หรือคลิกปุ่มด้านล่างเพื่อกลับสู่โหมดปกติ</p>
+          <hr>
+          <button type="button" class="btn btn-primary btn-sm" onclick="forceClientMode()">
+            <i class="bi bi-arrow-counterclockwise"></i> กลับสู่โหมดปกติ
+          </button>
+        </div>
+
+        <!-- System Tools Check Card -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">สถานะเครื่องมือระบบ</h5>
+            <div id="tools-status">
+              <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">กำลังตรวจสอบ...</span>
+                </div>
+                <p class="mt-2">กำลังตรวจสอบเครื่องมือที่จำเป็น...</p>
+              </div>
+            </div>
+            <div id="tools-install" style="display: none;">
+              <div class="alert alert-warning">
+                <i class="bi bi-exclamation-circle"></i> ต้องติดตั้งเครื่องมือบางรายการก่อนใช้งาน
+              </div>
+              <button type="button" class="btn btn-primary" onclick="installTools()">
+                <i class="bi bi-download"></i> ติดตั้งเครื่องมือที่จำเป็น
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- WiFi Status Card -->
+        <div class="card" id="wifi-status-card">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="bi bi-wifi"></i> สถานะการเชื่อมต่อ WiFi
+              <button type="button" class="btn btn-sm btn-outline-primary float-end" onclick="refreshWiFiStatus()">
+                <i class="bi bi-arrow-clockwise"></i> รีเฟรช
+              </button>
+            </h5>
+            
+            <div id="wifi-current-status">
+              <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">กำลังโหลด...</span>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div class="d-grid gap-2">
+              <button type="button" class="btn btn-primary" onclick="scanWiFi()">
+                <i class="bi bi-search"></i> สแกนหา WiFi
+              </button>
+            </div>
+
+            <!-- WiFi Networks List -->
+            <div id="wifi-networks-container" style="display: none; margin-top: 20px;">
+              <h6>เครือข่าย WiFi ที่พบ:</h6>
+              <div class="list-group" id="wifi-networks-list">
+                <!-- Networks will be inserted here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AP Configuration Card -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="bi bi-router"></i> ตั้งค่า Access Point (โหมดฉุกเฉิน)
+            </h5>
+            
+            <div id="ap-current-status" class="mb-3">
+              <!-- AP status will be shown here -->
+            </div>
+
+            <form id="ap-config-form">
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">ชื่อ AP (SSID)</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" id="ap-ssid" value="SchoolAlarm-Setup" maxlength="32">
+                  <small class="form-text text-muted">ชื่อที่จะแสดงเมื่ออยู่ในโหมด AP</small>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">รหัสผ่าน AP</label>
+                <div class="col-sm-9">
+                  <input type="password" class="form-control" id="ap-password" minlength="8" maxlength="63">
+                  <small class="form-text text-muted">8-63 ตัวอักษร (เว้นว่างถ้าต้องการสุ่ม)</small>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">ช่องสัญญาณ</label>
+                <div class="col-sm-9">
+                  <select class="form-select" id="ap-channel">
+                    <option value="1">1</option>
+                    <option value="6" selected>6</option>
+                    <option value="11">11</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-sm-9 offset-sm-3">
+                  <button type="submit" class="btn btn-success">
+                    <i class="bi bi-save"></i> บันทึกการตั้งค่า
+                  </button>
+                  <button type="button" class="btn btn-primary" onclick="testAPMode()">
+                    <i class="bi bi-play-circle"></i> ทดสอบเปิด AP
+                  </button>
+                  <button type="button" class="btn btn-danger" onclick="stopAPMode()">
+                    <i class="bi bi-stop-circle"></i> ปิด AP
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- WiFi Monitoring Card -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="bi bi-activity"></i> ระบบตรวจสอบการเชื่อมต่ออัตโนมัติ
+            </h5>
+            
+            <div class="row mb-3">
+              <div class="col-sm-9 offset-sm-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="monitor-enabled" checked>
+                  <label class="form-check-label" for="monitor-enabled">
+                    เปิดใช้งานการตรวจสอบและ Fallback อัตโนมัติ
+                  </label>
+                </div>
+                <small class="form-text text-muted">
+                  เมื่อเปิดใช้งาน ระบบจะตรวจสอบการเชื่อมต่อทุก 1 นาที และเปลี่ยนเป็น AP mode อัตโนมัติเมื่อ WiFi หลุด
+                </small>
+              </div>
+            </div>
+
+            <div id="monitoring-status" class="alert alert-info">
+              <strong>สถานะ:</strong> <span id="monitor-status-text">กำลังโหลด...</span>
+            </div>
+
+            <div id="fallback-history" style="display: none;">
+              <h6>ประวัติการ Fallback:</h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>จำนวนครั้ง</th>
+                      <th>ครั้งล่าสุด</th>
+                      <th>SSID ล่าสุด</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fallback-history-body">
+                    <!-- History will be inserted here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- End WiFi Management Section -->
   </section>
 </main>
 <!-- End #main -->
@@ -53,37 +232,336 @@
 
 {% block js %}
 <script>
-  document.getElementById('add_voice_api').addEventListener('submit', function(event) {
-    event.preventDefault();  // ป้องกันฟอร์มไม่ให้ทำการ submit ตามปกติ
-
-    // ดึงค่า input
-    const apiKey = document.getElementById('inputText').value;
-
-    // ใช้ Fetch API ส่งข้อมูล
-    fetch('/add_voice_api_key', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}',  // ใส่ CSRF token ถ้าใช้ Django
-      },
-      body: JSON.stringify({
-        voice_api_key: apiKey
+  // ============================================================================
+  // Voice API Key
+  // ============================================================================
+  
+  const voiceForm = document.getElementById('add_voice_api');
+  if (voiceForm) {
+    voiceForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const apiKey = document.getElementById('inputText').value;
+      fetch('/add_voice_api_key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({ voice_api_key: apiKey })
       })
-    })
-    .then(response => response.json())  // จัดการ response ที่ได้กลับมา
-    .then(data => {
-      if (data.message) {
-        // If the response contains a message, it means success
-        alert('API Key updated successfully!');
-        window.location.reload();  // Reload the page
-      } else if (data.error) {
-        // If the response contains an error, show an alert
-        alert('Error: ' + data.error);
-      }
-    })
-    .catch(error => {
-      alert('An unexpected error occurred.');
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert('API Key updated successfully!');
+          window.location.reload();
+        } else if (data.error) {
+          alert('Error: ' + data.error);
+        }
+      })
+      .catch(error => alert('An unexpected error occurred.'));
     });
+  }
+
+  // ============================================================================
+  // WiFi Management
+  // ============================================================================
+
+  let wifiToolsReady = false;
+
+  document.addEventListener('DOMContentLoaded', function() {
+    checkSystemTools();
   });
+
+  function checkSystemTools() {
+    fetch('/api/system/check/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.supported && data.ready) {
+          wifiToolsReady = true;
+          document.getElementById('wifi-section').style.display = 'block';
+          document.getElementById('tools-status').innerHTML = `<div class="alert alert-success"><i class="bi bi-check-circle"></i> เครื่องมือพร้อมใช้งาน<br><small>Platform: ${data.distro ? data.distro.name : 'Linux'}</small></div>`;
+          refreshWiFiStatus();
+          loadAPConfig();
+          loadMonitoringStatus();
+        } else if (data.supported && !data.ready) {
+          document.getElementById('wifi-section').style.display = 'block';
+          document.getElementById('tools-status').innerHTML = `<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> ยังไม่ได้ติดตั้งเครื่องมือบางรายการ<br><small>ขาดหายไป: ${data.missing_packages.join(', ')}</small></div>`;
+          document.getElementById('tools-install').style.display = 'block';
+        } else {
+          document.getElementById('tools-status').innerHTML = `<div class="alert alert-info"><i class="bi bi-info-circle"></i> WiFi Management รองรับเฉพาะ Ubuntu, Debian, และ Raspberry Pi OS</div>`;
+        }
+      })
+      .catch(error => console.error('Error checking system:', error));
+  }
+
+  function installTools() {
+    if (!confirm('ต้องการติดตั้งเครื่องมือที่จำเป็นหรือไม่?')) return;
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังติดตั้ง...';
+    fetch('/api/system/install/', { method: 'POST' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('ติดตั้งเครื่องมือสำเร็จ! กรุณารีเฟรชหน้าเว็บ');
+          location.reload();
+        } else {
+          alert('ติดตั้งล้มเหลว');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-download"></i> ติดตั้งเครื่องมือที่จำเป็น';
+        }
+      })
+      .catch(error => {
+        alert('เกิดข้อผิดพลาด: ' + error);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-download"></i> ติดตั้งเครื่องมือที่จำเป็น';
+      });
+  }
+
+  function refreshWiFiStatus() {
+    fetch('/api/wifi/status/')
+      .then(response => response.json())
+      .then(data => {
+        let statusHTML = '';
+        if (data.ap_mode) {
+          document.getElementById('fallback-banner').style.display = 'block';
+          statusHTML = `<div class="alert alert-warning"><h6><i class="bi bi-router"></i> อยู่ในโหมด Access Point</h6><p>SSID: <strong>${data.ap_status.ssid}</strong></p><p>IP: <strong>${data.ap_status.ip}</strong></p><p>Clients: <strong>${data.ap_status.clients}</strong></p></div>`;
+        } else if (data.connected && data.wifi) {
+          document.getElementById('fallback-banner').style.display = 'none';
+          const signalIcon = getSignalIcon(data.wifi.signal);
+          statusHTML = `<div class="row"><div class="col-md-6"><p><strong>SSID:</strong> ${data.wifi.ssid}</p><p><strong>Signal:</strong> ${signalIcon} ${data.wifi.signal}%</p></div><div class="col-md-6"><p><strong>IP Address:</strong> ${data.wifi.ip || 'N/A'}</p><p><strong>Internet:</strong> ${data.has_internet ? '✅ Connected' : '❌ No Internet'}</p></div></div><div class="progress" style="height: 20px;"><div class="progress-bar ${getSignalColor(data.wifi.signal)}" role="progressbar" style="width: ${data.wifi.signal}%" aria-valuenow="${data.wifi.signal}" aria-valuemin="0" aria-valuemax="100">${data.wifi.signal}%</div></div>`;
+        } else {
+          document.getElementById('fallback-banner').style.display = 'none';
+          statusHTML = `<div class="alert alert-secondary"><i class="bi bi-wifi-off"></i> ไม่ได้เชื่อมต่อ WiFi</div>`;
+        }
+        document.getElementById('wifi-current-status').innerHTML = statusHTML;
+      })
+      .catch(error => {
+        console.error('Error fetching WiFi status:', error);
+        document.getElementById('wifi-current-status').innerHTML = `<div class="alert alert-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+      });
+  }
+
+  function scanWiFi() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังสแกน...';
+    fetch('/api/wifi/scan/')
+      .then(response => response.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-search"></i> สแกนหา WiFi';
+        if (data.success && data.networks.length > 0) {
+          displayWiFiNetworks(data.networks);
+        } else {
+          alert('ไม่พบเครือข่าย WiFi');
+        }
+      })
+      .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-search"></i> สแกนหา WiFi';
+        alert('เกิดข้อผิดพลาด: ' + error);
+      });
+  }
+
+  function displayWiFiNetworks(networks) {
+    const container = document.getElementById('wifi-networks-container');
+    const list = document.getElementById('wifi-networks-list');
+    list.innerHTML = networks.map(network => {
+      const signalIcon = getSignalIcon(network.signal);
+      const connectedBadge = network.connected ? '<span class="badge bg-success">เชื่อมต่ออยู่</span>' : '';
+      const securityIcon = network.security === 'Open' ? '<i class="bi bi-unlock"></i>' : '<i class="bi bi-lock"></i>';
+      const ssidEscaped = network.ssid.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const securityEscaped = network.security.replace(/'/g, "\\'");
+      return `<a href="javascript:void(0)" class="list-group-item list-group-item-action" onclick="connectToWiFi('${ssidEscaped}', '${securityEscaped}')"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1">${signalIcon} ${network.ssid} ${connectedBadge}</h6><small>${network.signal}%</small></div><small>${securityIcon} ${network.security}</small></a>`;
+    }).join('');
+    container.style.display = 'block';
+  }
+
+  function connectToWiFi(ssid, security) {
+    let password = '';
+    if (security !== 'Open') {
+      password = prompt(`กรุณาใส่รหัสผ่านสำหรับ ${ssid}:`);
+      if (password === null) return;
+    }
+    fetch('/api/wifi/connect/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ssid: ssid, password: password })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          setTimeout(() => refreshWiFiStatus(), 3000);
+        } else {
+          alert('เชื่อมต่อล้มเหลว: ' + data.message);
+        }
+      })
+      .catch(error => alert('เกิดข้อผิดพลาด: ' + error));
+  }
+
+  function loadAPConfig() {
+    fetch('/api/ap/config/')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('ap-ssid').value = data.ssid;
+        document.getElementById('ap-password').value = data.password;
+        document.getElementById('ap-channel').value = data.channel;
+        updateAPStatus();
+      })
+      .catch(error => console.error('Error loading AP config:', error));
+  }
+
+  function updateAPStatus() {
+    fetch('/api/ap/status/')
+      .then(response => response.json())
+      .then(data => {
+        const statusDiv = document.getElementById('ap-current-status');
+        if (data.active) {
+          statusDiv.innerHTML = `<div class="alert alert-success"><strong><i class="bi bi-broadcast"></i> Access Point กำลังทำงาน</strong><br>SSID: ${data.ssid}<br>Clients: ${data.clients}</div>`;
+        } else {
+          statusDiv.innerHTML = `<div class="alert alert-secondary"><i class="bi bi-broadcast-pin"></i> Access Point ปิดอยู่</div>`;
+        }
+      })
+      .catch(error => console.error('Error loading AP status:', error));
+  }
+
+  const apForm = document.getElementById('ap-config-form');
+  if (apForm) {
+    apForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const config = {
+        ssid: document.getElementById('ap-ssid').value,
+        password: document.getElementById('ap-password').value,
+        channel: parseInt(document.getElementById('ap-channel').value)
+      };
+      fetch('/api/ap/config/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert(data.message);
+          } else {
+            alert('บันทึกล้มเหลว');
+          }
+        })
+        .catch(error => alert('เกิดข้อผิดพลาด: ' + error));
+    });
+  }
+
+  function testAPMode() {
+    if (!confirm('ต้องการเปิดโหมด Access Point หรือไม่?')) return;
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังเปิด...';
+    const config = {
+      ssid: document.getElementById('ap-ssid').value,
+      password: document.getElementById('ap-password').value || undefined,
+      channel: parseInt(document.getElementById('ap-channel').value)
+    };
+    fetch('/api/ap/start/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    })
+      .then(response => response.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-play-circle"></i> ทดสอบเปิด AP';
+        if (data.success) {
+          alert('เปิด AP สำเร็จ!\nSSID: ' + data.ap_info.ssid + '\nPassword: ' + data.ap_info.password + '\nIP: ' + data.ap_info.ip);
+          updateAPStatus();
+          refreshWiFiStatus();
+        } else {
+          alert('เปิด AP ล้มเหลว: ' + data.message);
+        }
+      })
+      .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-play-circle"></i> ทดสอบเปิด AP';
+        alert('เกิดข้อผิดพลาด: ' + error);
+      });
+  }
+
+  function stopAPMode() {
+    if (!confirm('ต้องการปิดโหมด Access Point หรือไม่?')) return;
+    fetch('/api/ap/stop/', { method: 'POST' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          updateAPStatus();
+          refreshWiFiStatus();
+        } else {
+          alert('ปิด AP ล้มเหลว: ' + data.message);
+        }
+      })
+      .catch(error => alert('เกิดข้อผิดพลาด: ' + error));
+  }
+
+  function forceClientMode() {
+    stopAPMode();
+  }
+
+  function loadMonitoringStatus() {
+    fetch('/api/wifi/monitor/status/')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('monitor-enabled').checked = data.enabled;
+        let statusText = data.enabled ? '✅ เปิดใช้งาน' : '❌ ปิดใช้งาน';
+        if (data.in_fallback_mode) statusText += ' (อยู่ในโหมด Fallback)';
+        document.getElementById('monitor-status-text').textContent = statusText;
+        if (data.fallback_count > 0) {
+          document.getElementById('fallback-history').style.display = 'block';
+          const lastTime = data.last_fallback_time ? new Date(data.last_fallback_time * 1000).toLocaleString('th-TH') : 'N/A';
+          document.getElementById('fallback-history-body').innerHTML = `<tr><td>${data.fallback_count}</td><td>${lastTime}</td><td>${data.last_known_ssid || 'N/A'}</td></tr>`;
+        }
+      })
+      .catch(error => console.error('Error loading monitoring status:', error));
+  }
+
+  const monitorCheckbox = document.getElementById('monitor-enabled');
+  if (monitorCheckbox) {
+    monitorCheckbox.addEventListener('change', function() {
+      const enabled = this.checked;
+      fetch('/api/wifi/monitor/toggle/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: enabled })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert(data.message);
+            loadMonitoringStatus();
+          }
+        })
+        .catch(error => alert('เกิดข้อผิดพลาด: ' + error));
+    });
+  }
+
+  function getSignalIcon(signal) {
+    if (signal >= 75) return '<i class="bi bi-wifi text-success"></i>';
+    if (signal >= 50) return '<i class="bi bi-wifi text-warning"></i>';
+    if (signal >= 25) return '<i class="bi bi-wifi text-danger"></i>';
+    return '<i class="bi bi-wifi-off text-muted"></i>';
+  }
+
+  function getSignalColor(signal) {
+    if (signal >= 75) return 'bg-success';
+    if (signal >= 50) return 'bg-warning';
+    return 'bg-danger';
+  }
+
+  setInterval(function() {
+    if (wifiToolsReady) {
+      refreshWiFiStatus();
+      loadMonitoringStatus();
+    }
+  }, 30000);
 </script>
 {% endblock js %}
