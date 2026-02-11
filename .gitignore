@@ -9,6 +9,7 @@ data/migrations/__pycache__/
 static/
 info.log
 debug.log
+logs/
 .env
 /env
 staticfiles

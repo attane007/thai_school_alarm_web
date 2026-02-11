@@ -279,18 +279,65 @@ function Main {
     if ($scriptPath -ne $InstallPath) {
         Write-Status "Copying project files to $InstallPath..." "Info"
         
-        # Get all files to calculate progress
-        $filesToCopy = Get-ChildItem -Path $scriptPath -Recurse -Force | Where-Object {-not $_.PSIsContainer}
+        # Read .gitignore patterns
+        $gitignorePath = Join-Path $scriptPath ".gitignore"
+        $ignorePatterns = @()
+        
+        if (Test-Path $gitignorePath) {
+            $ignorePatterns = Get-Content $gitignorePath | Where-Object {
+                $_ -and $_ -notmatch "^#" -and $_ -notmatch "^\s*$"
+            } | ForEach-Object {
+                $_.Trim()
+            }
+            Write-Status "Loaded $($ignorePatterns.Count) patterns from .gitignore" "Info"
+        }
+        
+        # Helper function to check if path matches gitignore patterns
+        function Test-IgnorePattern {
+            param([string]$Path, [array]$Patterns)
+            
+            foreach ($pattern in $Patterns) {
+                # Convert gitignore pattern to PowerShell wildcard
+                $psPattern = $pattern -replace '\*\*', '*' -replace '/', '\'
+                
+                # Check if it's a directory pattern
+                if ($psPattern.EndsWith('\')) {
+                    if ($Path -like "*$psPattern*" -or $Path -like "*\$psPattern*") {
+                        return $true
+                    }
+                } else {
+                    # File or directory pattern
+                    if ($Path -like "*\$psPattern" -or $Path -like "*\$psPattern\*" -or $Path -like "*$psPattern*") {
+                        return $true
+                    }
+                }
+            }
+            return $false
+        }
+        
+        # Get all files to calculate progress, excluding gitignore patterns
+        $allFiles = Get-ChildItem -Path $scriptPath -Recurse -Force | Where-Object {-not $_.PSIsContainer}
+        $filesToCopy = @()
+        
+        foreach ($file in $allFiles) {
+            $relativePath = $file.FullName.Substring($scriptPath.Length + 1)
+            
+            # Skip if matches gitignore pattern
+            if (-not (Test-IgnorePattern $relativePath $ignorePatterns)) {
+                $filesToCopy += $file
+            }
+        }
+        
         $totalFiles = $filesToCopy.Count
         $activity = "Copying project files"
         $processed = 0
         
         if ($totalFiles -eq 0) {
-            Copy-Item -Path "$scriptPath\*" -Destination $InstallPath -Recurse -Force
+            Write-Status "No files to copy" "Warning"
         } else {
-            $filesToCopy | ForEach-Object {
+            foreach ($file in $filesToCopy) {
                 $processed++
-                $relativePath = $_.FullName.Substring($scriptPath.Length)
+                $relativePath = $file.FullName.Substring($scriptPath.Length + 1)
                 $percent = ($processed / $totalFiles * 100)
                 Write-Progress -Activity $activity -Status "$relativePath" -PercentComplete $percent
                 
@@ -301,12 +348,12 @@ function Main {
                     New-Item -ItemType Directory -Path $destDir -Force | Out-Null
                 }
                 
-                Copy-Item -Path $_.FullName -Destination $destFile -Force
+                Copy-Item -Path $file.FullName -Destination $destFile -Force
             }
         }
         
         Write-Progress -Activity $activity -Completed
-        Write-Status "Project files copied successfully ($totalFiles files)" "Success"
+        Write-Status "Project files copied successfully ($totalFiles files, skipped $(($allFiles.Count - $totalFiles)) ignored files)" "Success"
     }
     
     # Create virtual environment

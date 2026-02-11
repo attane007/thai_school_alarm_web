@@ -189,8 +189,13 @@ if _platform_module.system() == 'Windows':
 else:
     _logs_dir = '/var/log/thai_school_alarm_web'
 
-# Create logs directory if needed
-os.makedirs(_logs_dir, exist_ok=True)
+# Create logs directory if needed, with fallback for CI/test environments
+try:
+    os.makedirs(_logs_dir, exist_ok=True)
+except (PermissionError, OSError):
+    # Fallback to local logs directory if /var/log is not writable (CI/test environments)
+    _logs_dir = os.path.join(BASE_DIR, 'logs')
+    os.makedirs(_logs_dir, exist_ok=True)
 
 LOGS_DIR = _logs_dir
 LOG_FILE = os.path.join(LOGS_DIR, 'django.log')
