@@ -137,7 +137,7 @@ function Initialize-Database {
         python manage.py migrate
         
         Write-Status "Creating default groups and permissions..." "Info"
-        python manage.py shell << 'EOF'
+        $initScript = @'
 from django.contrib.auth.models import Group, Permission
 from data.models import Day
 
@@ -156,7 +156,9 @@ for day_data in days_data:
     Day.objects.get_or_create(**day_data)
 
 print("Database initialized successfully")
-EOF
+'@
+
+        $initScript | python manage.py shell
         
         Write-Status "Database initialized successfully" "Success"
         return $true
