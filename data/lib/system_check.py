@@ -7,12 +7,19 @@ import subprocess
 import platform
 import logging
 
+from .platform_helpers import is_windows, is_linux as is_linux_helper
+
 logger = logging.getLogger(__name__)
 
 
 def is_linux():
     """ตรวจสอบว่าเป็น Linux OS หรือไม่"""
-    return platform.system() == 'Linux'
+    return is_linux_helper()
+
+
+def is_windows_os():
+    """ตรวจสอบว่าเป็น Windows OS หรือไม่"""
+    return is_windows()
 
 
 def detect_linux_distro():
@@ -58,21 +65,35 @@ def detect_linux_distro():
 def check_command_exists(command):
     """
     ตรวจสอบว่า command มีอยู่ในระบบหรือไม่
+    Cross-platform implementation for Windows and Linux
     Args:
         command: ชื่อ command (e.g., 'nmcli')
     Returns:
         bool: True ถ้ามี, False ถ้าไม่มี
     """
-    try:
-        result = subprocess.run(
-            ['which', command],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        return result.returncode == 0
-    except Exception:
-        return False
+    if is_windows():
+        # On Windows, try to run the command with --version or /?
+        try:
+            result = subprocess.run(
+                [command, '--version'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
+    else:
+        try:
+            result = subprocess.run(
+                ['which', command],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
 
 
 def check_service_exists(service_name):
@@ -98,9 +119,20 @@ def check_service_exists(service_name):
 def check_network_tools():
     """
     ตรวจสอบเครื่องมือที่จำเป็นทั้งหมด
+    Cross-platform: Full WiFi tools on Linux, limited/unsupported on Windows
     Returns:
         dict: สถานะของแต่ละ tool
     """
+    if is_windows():
+        # Windows has limited WiFi support
+        return {
+            'platform_supported': True,  # Windows itself is supported
+            'message': 'WiFi management ไม่รองรับบน Windows - core features only',
+            'wifi_supported': False,
+            'ap_mode_supported': False,
+            'platform': 'Windows'
+        }
+    
     if not is_linux():
         return {
             'platform_supported': False,
@@ -175,13 +207,16 @@ def get_missing_packages():
 
 def install_package(package_name, progress_callback=None):
     """
-    ติดตั้ง package ผ่าน apt
+    ติดตั้ง package ผ่าน apt (Linux) หรือ pip (Windows)
     Args:
         package_name: ชื่อ package
         progress_callback: function สำหรับส่ง progress (optional)
     Returns:
         tuple: (success: bool, message: str)
     """
+    if is_windows():
+        return False, "Windows ไม่รองรับการติดตั้ง WiFi tools - ใช้ pip install requirements.txt แทน"
+    
     if not is_linux():
         return False, "ไม่รองรับระบบปฏิบัติการนี้"
     

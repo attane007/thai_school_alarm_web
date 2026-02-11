@@ -1,6 +1,7 @@
 """
 WiFi Management Utility
 จัดการการเชื่อมต่อ WiFi ผ่าน NetworkManager (nmcli)
+Note: WiFi management is only available on Linux. Windows will return empty/unsupported responses.
 """
 
 import subprocess
@@ -8,6 +9,8 @@ import re
 import logging
 import socket
 from typing import Optional, List, Dict, Tuple
+
+from .platform_helpers import is_windows
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +21,10 @@ def is_network_manager_available() -> bool:
     Returns:
         bool: True ถ้าพร้อมใช้งาน
     """
+    if is_windows():
+        logger.warning("WiFi management not supported on Windows")
+        return False
+    
     try:
         result = subprocess.run(
             ['nmcli', '--version'],

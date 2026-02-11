@@ -11,8 +11,11 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from pathlib import Path
 from decouple import config
-import platform
+
+# Import platform helpers for cross-platform support
+from data.lib.platform_helpers import is_windows, get_logs_dir, get_app_data_dir
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,8 +28,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY', default='xxx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-is_windows = platform.system() == "Windows"
-DEBUG = config('DEBUG', default=is_windows, cast=bool)
+# Windows development defaults to DEBUG=True for easier development
+DEBUG = config('DEBUG', default=is_windows(), cast=bool)
 
 # ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
 # if '*' in ALLOWED_HOSTS:
@@ -163,3 +166,80 @@ CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# ============================================================
+# Logging Configuration - Cross-platform support
+# ============================================================
+
+# Get platform-appropriate directories
+LOGS_DIR = str(get_logs_dir())
+LOG_FILE = os.path.join(LOGS_DIR, 'django.log')
+CELERY_LOG_FILE = os.path.join(LOGS_DIR, 'celery.log')
+PLAY_SOUND_LOG = os.path.join(LOGS_DIR, 'play_sound.log')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {name} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_FILE,
+            'maxBytes': 1024 * 1024 * 10,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose'
+        },
+        'celery_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': CELERY_LOG_FILE,
+            'maxBytes': 1024 * 1024 * 10,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose'
+        },
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console', 'file'],
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'data': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'celery': {
+            'handlers': ['console', 'celery_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

@@ -20,6 +20,7 @@ from functools import wraps
 from decouple import Config,RepositoryEnv
 from django.conf import settings
 from data.lib.process import is_process_running
+from data.lib.platform_helpers import is_windows as is_windows_platform, restart_service
 from .tasks import stop_sound
 
 def check_env_file(view_func):
@@ -340,9 +341,9 @@ def api_setup(request):
                 env_file.write(f"ALLOWED_HOSTS={domain_no_port}\n")
                 env_file.write(f"CSRF_TRUSTED_ORIGINS={domain}\n")
 
-            # Execute the script only if not on Windows
-            if platform.system() != "Windows":
-                subprocess.Popen(["sudo", "systemctl", "restart", "thai_school_alarm_web.service"])
+            # Restart service (Linux only, Windows doesn't support systemd)
+            if not is_windows_platform():
+                restart_service("thai_school_alarm_web.service")
 
             # Return success response
             return JsonResponse({"message": "Setup completed successfully."}, status=200)

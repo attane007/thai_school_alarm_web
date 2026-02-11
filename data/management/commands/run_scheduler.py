@@ -11,13 +11,14 @@ The scheduler will:
 - Check for scheduled alarms every minute
 - Monitor WiFi connection every minute
 - Sync schedules from database every 5 minutes
-- Handle graceful shutdown on SIGINT/SIGTERM
+- Handle graceful shutdown on SIGINT/SIGTERM (SIGINT on Windows, both on Linux)
 """
 
 import logging
 import signal
 import sys
 import time
+import os
 from datetime import datetime
 
 from django.core.management.base import BaseCommand
@@ -30,6 +31,7 @@ from django_apscheduler.jobstores import DjangoJobStore
 
 from data.scheduler_jobs import check_schedule, monitor_wifi_connection, sync_schedules_to_apscheduler
 from data.lib.audio_player import get_audio_player
+from data.lib.platform_helpers import is_windows
 
 logger = logging.getLogger(__name__)
 
@@ -201,10 +203,19 @@ class Command(BaseCommand):
         logger.info("-" * 70)
     
     def _register_signal_handlers(self):
-        """Register signal handlers for graceful shutdown."""
+        """
+        Register signal handlers for graceful shutdown.
+        Cross-platform: SIGINT works on all platforms, SIGTERM only on Unix.
+        """
         signal.signal(signal.SIGINT, self._signal_handler)
-        signal.signal(signal.SIGTERM, self._signal_handler)
-        logger.info("✓ Registered signal handlers (SIGINT, SIGTERM)")
+        
+        if not is_windows():
+            # SIGTERM is not available on Windows
+            signal.signal(signal.SIGTERM, self._signal_handler)
+            logger.info("✓ Registered signal handlers (SIGINT, SIGTERM)")
+        else:
+            logger.info("✓ Registered signal handlers (SIGINT)")
+            logger.info("  Note: Press Ctrl+C to gracefully shutdown")
     
     def _signal_handler(self, signum, frame):
         """

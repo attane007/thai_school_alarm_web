@@ -1,6 +1,7 @@
 """
 Access Point (AP) Manager Utility
 จัดการโหมด Access Point สำหรับ fallback เมื่อ WiFi หลุด
+Note: AP mode is only available on Linux. Windows will return unsupported responses.
 """
 
 import subprocess
@@ -10,6 +11,8 @@ import secrets
 import string
 from typing import Optional, Dict, Tuple, List
 from jinja2 import Template
+
+from .platform_helpers import is_windows
 
 logger = logging.getLogger(__name__)
 
@@ -164,6 +167,10 @@ def start_ap_mode(ssid=DEFAULT_AP_SSID, password=None, channel=DEFAULT_AP_CHANNE
     Returns:
         tuple: (success: bool, message: str, ap_info: dict)
     """
+    if is_windows():
+        logger.warning("AP mode not supported on Windows")
+        return False, "โหมด Access Point ไม่รองรับบน Windows", {}
+    
     try:
         logger.info(f"Starting AP mode: {ssid}")
         
@@ -273,6 +280,10 @@ def stop_ap_mode():
     Returns:
         tuple: (success: bool, message: str)
     """
+    if is_windows():
+        logger.warning("AP mode not supported on Windows")
+        return False, "โหมด Access Point ไม่รองรับบน Windows"
+    
     try:
         logger.info("Stopping AP mode...")
         
