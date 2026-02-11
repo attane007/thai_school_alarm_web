@@ -121,45 +121,31 @@ function Install-Dependencies {
     
     Write-Status "Installing dependencies..." "Info"
     
-    $activateScript = Join-Path $VenvPath "Scripts\Activate.ps1"
     $pipExe = Join-Path $VenvPath "Scripts\pip.exe"
     
-    if (-not (Test-Path $activateScript)) {
-        Write-Status "Activation script not found at $activateScript" "Error"
+    if (-not (Test-Path $pipExe)) {
+        Write-Status "Pip not found at $pipExe" "Error"
         return $false
     }
     
     try {
-        & $activateScript
-        
         Write-Status "Upgrading pip..." "Info"
-        $activity = "Upgrading pip"
-        & $pipExe install --upgrade pip 2>&1 | ForEach-Object {
-            if ($_ -match "Successfully installed|Requirement already satisfied") {
-                Write-Progress -Activity $activity -Status "Complete" -PercentComplete 100
-                Write-Status "Pip upgraded successfully" "Success"
-            }
-        }
+        & $pipExe install --upgrade pip --quiet
+        Write-Status "Pip upgraded" "Success"
         
         Write-Status "Installing requirements from $RequirementsFile..." "Info"
         $activity = "Installing Python packages"
-        $packageCount = 0
+        
+        # Count total requirements
         $totalPackages = @(Get-Content $RequirementsFile | Where-Object {$_ -notmatch "^#" -and $_ -notmatch "^\s*$"}).Count
+        Write-Progress -Activity $activity -Status "Starting installation..." -PercentComplete 10
         
-        & $pipExe install -r $RequirementsFile 2>&1 | ForEach-Object {
-            if ($_ -match "Successfully installed") {
-                $packageCount++
-                $percent = [math]::Min(($packageCount / $totalPackages * 100), 99)
-                Write-Progress -Activity $activity -Status "$packageCount / $totalPackages packages" -PercentComplete $percent
-            } elseif ($_ -match "Requirement already satisfied") {
-                $packageCount++
-                $percent = [math]::Min(($packageCount / $totalPackages * 100), 99)
-                Write-Progress -Activity $activity -Status "$packageCount / $totalPackages packages (cached)" -PercentComplete $percent
-            }
-        }
+        & $pipExe install -r $RequirementsFile --quiet
         
+        Write-Progress -Activity $activity -Status "Installation complete" -PercentComplete 100
         Write-Progress -Activity $activity -Completed
-        Write-Status "Dependencies installed successfully" "Success"
+        
+        Write-Status "Dependencies installed successfully ($totalPackages packages)" "Success"
         return $true
     }
     catch {
@@ -284,80 +270,93 @@ function Main {
         $ignorePatterns = @()
         
         if (Test-Path $gitignorePath) {
-            $ignorePatterns = Get-Content $gitignorePath | Where-Object {
+            $ignorePatterns = @(Get-Content $gitignorePath | Where-Object {
                 $_ -and $_ -notmatch "^#" -and $_ -notmatch "^\s*$"
-            } | ForEach-Object {
-                $_.Trim()
-            }
+            })
             Write-Status "Loaded $($ignorePatterns.Count) patterns from .gitignore" "Info"
         }
         
-        # Helper function to check if path matches gitignore patterns
-        function Test-IgnorePattern {
-            param([string]$Path, [array]$Patterns)
+        # Use Robocopy for faster file copying with exclusions
+        $excludeDirs = @()
+        $excludeFiles = @()
+        
+        # Parse .gitignore patterns for Robocopy
+        foreach ($pattern in $ignorePatterns) {
+            $pattern = $pattern.Trim()
             
-            foreach ($pattern in $Patterns) {
-                # Convert gitignore pattern to PowerShell wildcard
-                $psPattern = $pattern -replace '\*\*', '*' -replace '/', '\'
-                
-                # Check if it's a directory pattern
-                if ($psPattern.EndsWith('\')) {
-                    if ($Path -like "*$psPattern*" -or $Path -like "*\$psPattern*") {
-                        return $true
-                    }
-                } else {
-                    # File or directory pattern
-                    if ($Path -like "*\$psPattern" -or $Path -like "*\$psPattern\*" -or $Path -like "*$psPattern*") {
-                        return $true
-                    }
+            if ($pattern.EndsWith('/')) {
+                # Directory pattern
+                $dirname = $pattern.TrimEnd('/')
+                if ($dirname -notmatch '\*') {
+                    $excludeDirs += $dirname
                 }
+            } elseif ($pattern -match '^\*\.') {
+                # File extension pattern like *.pyc
+                $excludeFiles += $pattern
+            } elseif ($pattern -notmatch '/' -and $pattern -notmatch '\*') {
+                # Specific filename or directory
+                $excludeDirs += $pattern
+                $excludeFiles += $pattern
             }
-            return $false
         }
         
-        # Get all files to calculate progress, excluding gitignore patterns
-        $allFiles = Get-ChildItem -Path $scriptPath -Recurse -Force | Where-Object {-not $_.PSIsContainer}
-        $filesToCopy = @()
+        # Add common exclusions
+        $excludeDirs += "\.git", "\.venv", "__pycache__", "logs"
         
-        foreach ($file in $allFiles) {
-            $relativePath = $file.FullName.Substring($scriptPath.Length + 1)
+        # Build Robocopy command
+        $xcopyArgs = @(
+            "/E",           # Copy subdirectories including empty ones
+            "/I",           # If destination doesn't exist, create it
+            "/Y",           # Overwrite without prompting
+            "/EXCLUDE:$($excludeFiles -join ';')" # Exclude file patterns
+        )
+        
+        # Add directory exclusions
+        foreach ($dir in $excludeDirs) {
+            $xcopyArgs += "/EXCLUDE:$dir"
+        }
+        
+        try {
+            Write-Progress -Activity "Copying files" -Status "Using robocopy for fast copy..." -PercentComplete 50
             
-            # Skip if matches gitignore pattern
-            if (-not (Test-IgnorePattern $relativePath $ignorePatterns)) {
-                $filesToCopy += $file
+            # Use Robocopy which is faster and better for large directory structures
+            & robocopy $scriptPath $InstallPath /E /I /Y /XF "*.pyc" /XD "__pycache__" ".venv" ".git" "logs" "db.sqlite3" | Out-Null
+            
+            # Copy .env file separately (it's in .gitignore so robocopy excludes it)
+            $envFile = Join-Path $scriptPath ".env"
+            if (Test-Path $envFile) {
+                Write-Status "Copying .env file..." "Info"
+                Copy-Item -Path $envFile -Destination (Join-Path $InstallPath ".env") -Force -ErrorAction SilentlyContinue
+                Write-Status ".env file copied" "Success"
+            } else {
+                Write-Status "Warning: .env file not found in source directory" "Warning"
+            }
+            
+            Write-Progress -Activity "Copying files" -Completed
+            Write-Status "Project files copied successfully" "Success"
+        }
+        catch {
+            Write-Status "Note: Robocopy not available, using standard copy..." "Warning"
+            try {
+                & xcopy "$scriptPath" "$InstallPath" /E /I /Y /EXCLUDE:".venv;__pycache__;.git;logs;db.sqlite3" | Out-Null
+                Write-Status "Project files copied successfully" "Success"
+            }
+            catch {
+                Write-Status "Could not copy files: $_" "Error"
+                return $false
             }
         }
-        
-        $totalFiles = $filesToCopy.Count
-        $activity = "Copying project files"
-        $processed = 0
-        
-        if ($totalFiles -eq 0) {
-            Write-Status "No files to copy" "Warning"
-        } else {
-            foreach ($file in $filesToCopy) {
-                $processed++
-                $relativePath = $file.FullName.Substring($scriptPath.Length + 1)
-                $percent = ($processed / $totalFiles * 100)
-                Write-Progress -Activity $activity -Status "$relativePath" -PercentComplete $percent
-                
-                $destFile = Join-Path $InstallPath $relativePath
-                $destDir = Split-Path -Parent $destFile
-                
-                if (-not (Test-Path $destDir)) {
-                    New-Item -ItemType Directory -Path $destDir -Force | Out-Null
-                }
-                
-                Copy-Item -Path $file.FullName -Destination $destFile -Force
-            }
-        }
-        
-        Write-Progress -Activity $activity -Completed
-        Write-Status "Project files copied successfully ($totalFiles files, skipped $(($allFiles.Count - $totalFiles)) ignored files)" "Success"
     }
     
     # Create virtual environment
     $venvPath = Join-Path $InstallPath ".venv"
+    
+    # Remove old .venv if it was copied (venv is not portable)
+    if (Test-Path $venvPath) {
+        Write-Status "Removing non-portable virtual environment from copy..." "Info"
+        Remove-Item -Path $venvPath -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    
     if (-not (Create-VirtualEnvironment $pythonExe $venvPath)) {
         exit 1
     }
