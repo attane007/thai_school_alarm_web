@@ -14,11 +14,22 @@ import os
 from pathlib import Path
 from decouple import config
 
-# Import platform helpers for cross-platform support
-from data.lib.platform_helpers import is_windows, get_logs_dir, get_app_data_dir
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+# Platform-specific helpers (lazy import to avoid circular imports)
+def _get_is_windows():
+    """Lazy import to avoid circular imports during Django initialization"""
+    from data.lib.platform_helpers import is_windows
+    return is_windows()
+    
+
+def _get_logs_dir():
+    """Lazy import to avoid circular imports during Django initialization"""
+    from data.lib.platform_helpers import get_logs_dir
+    return str(get_logs_dir())
 
 
 # Quick-start development settings - unsuitable for production
@@ -29,7 +40,7 @@ SECRET_KEY = config('SECRET_KEY', default='xxx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Windows development defaults to DEBUG=True for easier development
-DEBUG = config('DEBUG', default=is_windows(), cast=bool)
+DEBUG = config('DEBUG', default=_get_is_windows(), cast=bool)
 
 # ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
 # if '*' in ALLOWED_HOSTS:
@@ -171,10 +182,18 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Logging Configuration - Cross-platform support
 # ============================================================
 
-# Get platform-appropriate directories
-LOGS_DIR = str(get_logs_dir())
+# Get platform-appropriate directories (compute directly to avoid circular imports)
+import platform as _platform_module
+if _platform_module.system() == 'Windows':
+    _logs_dir = os.path.join(os.path.expandvars('%APPDATA%'), 'thai_school_alarm_web', 'logs')
+else:
+    _logs_dir = '/var/log/thai_school_alarm_web'
+
+# Create logs directory if needed
+os.makedirs(_logs_dir, exist_ok=True)
+
+LOGS_DIR = _logs_dir
 LOG_FILE = os.path.join(LOGS_DIR, 'django.log')
-CELERY_LOG_FILE = os.path.join(LOGS_DIR, 'celery.log')
 PLAY_SOUND_LOG = os.path.join(LOGS_DIR, 'play_sound.log')
 
 LOGGING = {
@@ -212,14 +231,6 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'verbose'
         },
-        'celery_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': CELERY_LOG_FILE,
-            'maxBytes': 1024 * 1024 * 10,  # 10 MB
-            'backupCount': 5,
-            'formatter': 'verbose'
-        },
     },
     'root': {
         'level': 'INFO',
@@ -233,11 +244,6 @@ LOGGING = {
         },
         'data': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'celery': {
-            'handlers': ['console', 'celery_file'],
             'level': 'INFO',
             'propagate': False,
         },

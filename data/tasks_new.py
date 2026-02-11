@@ -146,4 +146,3 @@ __all__ = [
     'monitor_wifi_connection',
     'sync_schedules_to_apscheduler'
 ]
-

@@ -21,3 +21,5 @@ data/lib/__pycache__
 celerybeat-schedule.bak
 celerybeat-schedule.dat
 celerybeat-schedule.dir
+data/management/__pycache__/
+data/management/commands/__pycache__/

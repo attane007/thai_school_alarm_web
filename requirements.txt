@@ -6,7 +6,6 @@ autobahn==25.12.2
 Automat==25.4.16
 binaryornot==0.4.4
 cbor2==5.8.0
-celery==5.3.6
 certifi==2026.1.4
 cffi==2.0.0
 chardet==5.2.0
