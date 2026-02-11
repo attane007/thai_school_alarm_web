@@ -9,8 +9,7 @@ VENV_DIR="$PROJECT_DIR/.venv"
 SERVICE_NAME="thai_school_alarm_web.service"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
 START_PORT=8000
-CELERY_SERVICE_NAME="thai_school_alarm_celery.service"
-CELERY_BEAT_SERVICE_NAME="thai_school_alarm_beat.service"
+SCHEDULER_SERVICE_NAME="thai_school_alarm_scheduler.service"
 
 # Function to find an available port
 find_available_port() {
@@ -43,7 +42,7 @@ check_python_version
 
 # 1. Install required packages
 echo "Installing required packages..."
-sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential ffmpeg rabbitmq-server
+sudo apt install -y git python3-pip python3-dev libpq-dev python3-venv build-essential ffmpeg
 
 # Function to find and modify cmdline.txt
 modify_cmdline_txt() {
@@ -110,15 +109,8 @@ modify_cmdline_txt() {
 # Call the function to modify cmdline.txt
 modify_cmdline_txt
 
-# Enable and start RabbitMQ
-sudo systemctl enable rabbitmq-server
-sudo systemctl start rabbitmq-server
-
-# Add RabbitMQ user and permissions
-echo "Setting up RabbitMQ user and permissions..."
-sudo rabbitmqctl add_user user school_alarm
-sudo rabbitmqctl add_vhost /
-sudo rabbitmqctl set_permissions -p / user ".*" ".*" ".*"
+# RabbitMQ is no longer needed - using APScheduler instead
+# No message broker required
 
 # Ensure /var/www exists and set correct ownership
 if [ ! -d "/var/www" ]; then
@@ -154,7 +146,7 @@ if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 else
     echo "requirements.txt not found. Installing Django and Daphne only..."
-    pip install django daphne celery
+    pip install django daphne
 fi
 
 # 5. Collect static files for production
@@ -183,40 +175,39 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-# Create systemd service file for Celery Worker
-sudo bash -c "cat > /etc/systemd/system/$CELERY_SERVICE_NAME" <<EOF
+# Create systemd service file for APScheduler
+echo "Creating APScheduler service..."
+sudo bash -c "cat > /etc/systemd/system/$SCHEDULER_SERVICE_NAME" <<EOF
 [Unit]
-Description=Celery Worker for Thai School Alarm
+Description=Thai School Alarm Scheduler (APScheduler)
 After=network.target
 
 [Service]
+Type=simple
 User=$USER
 Group=$USER
 WorkingDirectory=$PROJECT_DIR
-# ตั้ง concurrency=1 เพื่อป้องกันเสียงซ้อนและ race condition
-ExecStart=$VENV_DIR/bin/celery -A thai_school_alarm_web worker --loglevel=info --concurrency=1
+Environment="PATH=$VENV_DIR/bin"
+ExecStart=$VENV_DIR/bin/python manage.py run_scheduler
+
+# Restart policy
 Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=append:/var/log/thai_alarm/scheduler.log
+StandardError=append:/var/log/thai_alarm/scheduler-error.log
+
+# Graceful shutdown time
+TimeoutStopSec=30
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# Create systemd service file for Celery Beat
-sudo bash -c "cat > /etc/systemd/system/$CELERY_BEAT_SERVICE_NAME" <<EOF
-[Unit]
-Description=Celery Beat Scheduler for Thai School Alarm
-After=network.target
-
-[Service]
-User=$USER
-Group=$USER
-WorkingDirectory=$PROJECT_DIR
-ExecStart=$VENV_DIR/bin/celery -A thai_school_alarm_web beat --loglevel=info
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
+# Create log directory
+sudo mkdir -p /var/log/thai_alarm
+sudo chown $USER:$USER /var/log/thai_alarm
 
 # 8. Reload systemd, enable and start the services
 echo "Reloading systemd and enabling services..."
@@ -224,11 +215,17 @@ sudo systemctl daemon-reload
 sudo systemctl enable $SERVICE_NAME
 sudo systemctl restart $SERVICE_NAME
 
-# Enable and start Celery Worker and Beat services
-sudo systemctl enable $CELERY_SERVICE_NAME
-sudo systemctl start $CELERY_SERVICE_NAME
-sudo systemctl enable $CELERY_BEAT_SERVICE_NAME
-sudo systemctl start $CELERY_BEAT_SERVICE_NAME
+# Enable and start APScheduler service
+echo "Starting APScheduler service..."
+sudo systemctl enable $SCHEDULER_SERVICE_NAME
+sudo systemctl start $SCHEDULER_SERVICE_NAME
+
+# Check service status
+echo ""
+echo "Service Status:"
+sudo systemctl status $SERVICE_NAME --no-pager
+echo ""
+sudo systemctl status $SCHEDULER_SERVICE_NAME --no-pager
 
 # Return to the original directory
 cd "$INITIAL_DIR"

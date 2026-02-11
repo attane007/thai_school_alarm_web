@@ -1,0 +1,30 @@
+[Unit]
+Description=Thai School Alarm Scheduler (APScheduler)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/thai_school_alarm_web
+Environment="PATH=/opt/thai_school_alarm_web/venv/bin"
+ExecStart=/opt/thai_school_alarm_web/venv/bin/python manage.py run_scheduler
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=append:/var/log/thai_alarm/scheduler.log
+StandardError=append:/var/log/thai_alarm/scheduler-error.log
+
+# Security hardening (optional)
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Graceful shutdown time
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

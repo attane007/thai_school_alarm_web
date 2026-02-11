@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_apscheduler',
     'data',
 ]
 
@@ -141,14 +142,12 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
 
-# Celery settings
-CELERY_BROKER_URL = 'amqp://user:school_alarm@localhost:5672//'
-# CELERY_RESULT_BACKEND = 'django-db'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+# APScheduler settings
+# Format: 'levelname=logger_name' (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+
+# Store APScheduler jobs in the database
+APSCHEDULER_RUN_NOW_TIMEOUT = 25  # Seconds
 
 
 # CSRF/Cloudflare Tunnel settings

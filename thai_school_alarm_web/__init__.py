@@ -1,2 +1,3 @@
-from .celery import app as celery_app
-__all__ = ('celery_app',)
+# Celery has been replaced with APScheduler
+# No need to import celery_app anymore
+__all__ = ()
