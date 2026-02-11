@@ -19,8 +19,8 @@ function Write-Status {
     param([string]$Message, [string]$Status = "Info")
     
     switch ($Status) {
-        "Success" { Write-Host "[✓] $Message" -ForegroundColor Green }
-        "Error" { Write-Host "[✗] $Message" -ForegroundColor Red }
+        "Success" { Write-Host "[+] $Message" -ForegroundColor Green }
+        "Error" { Write-Host "[-] $Message" -ForegroundColor Red }
         "Warning" { Write-Host "[!] $Message" -ForegroundColor Yellow }
         default { Write-Host "[*] $Message" -ForegroundColor Cyan }
     }
@@ -38,38 +38,64 @@ function Test-Administrator {
     }
 }
 
-# Check Python installation
-function Test-PythonInstallation {
-    param([string]$MinVersion = "3.10")
+# Find Python in PATH or common locations
+function Find-Python {
+    Write-Status "Searching for Python installation..." "Info"
     
-    Write-Status "Checking Python installation..." "Info"
+    # Search common installation paths first (more reliable)
+    $searchPaths = @(
+        "C:\Python312\python.exe",
+        "C:\Python311\python.exe",
+        "C:\Python310\python.exe",
+        "C:\Python39\python.exe",
+        "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe",
+        "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe",
+        "$env:LOCALAPPDATA\Programs\Python\Python310\python.exe",
+        "$env:ProgramFiles\Python312\python.exe",
+        "$env:ProgramFiles\Python311\python.exe",
+        "$env:ProgramFiles\Python310\python.exe"
+    )
     
-    try {
-        $pythonVersion = python --version 2>&1
-        Write-Status "Found: $pythonVersion" "Success"
-        
-        # Extract version number
-        if ($pythonVersion -match "Python (\d+\.\d+)") {
-            $version = [version]$matches[1]
-            $minVer = [version]$MinVersion
-            
-            if ($version -ge $minVer) {
-                return $true
-            } else {
-                Write-Status "Python $MinVersion or higher required. Found: $pythonVersion" "Error"
-                return $false
-            }
+    # Check each common path
+    foreach ($path in $searchPaths) {
+        if (Test-Path $path) {
+            Write-Status "Found Python at: $path" "Success"
+            return $path
         }
     }
-    catch {
-        Write-Status "Python not found or not in PATH" "Error"
-        return $false
+    
+    # Try python command from PATH (but skip Windows Store stub)
+    try {
+        $pythonPath = (Get-Command python -ErrorAction Stop).Source
+        
+        # Skip Windows Store stub
+        if ($pythonPath -notmatch "WindowsApps" -and $pythonPath -notmatch "Microsoft Store") {
+            Write-Status "Found Python at: $pythonPath" "Success"
+            return $pythonPath
+        }
+    } catch {
+        # Continue to next attempt
     }
+    
+    # Try python3 command
+    try {
+        $pythonPath = (Get-Command python3 -ErrorAction Stop).Source
+        
+        # Skip Windows Store stub
+        if ($pythonPath -notmatch "WindowsApps" -and $pythonPath -notmatch "Microsoft Store") {
+            Write-Status "Found Python3 at: $pythonPath" "Success"
+            return $pythonPath
+        }
+    } catch {
+        # Continue - no python3 found
+    }
+    
+    return $null
 }
 
 # Create virtual environment
 function Create-VirtualEnvironment {
-    param([string]$VenvPath)
+    param([string]$PythonExe, [string]$VenvPath)
     
     Write-Status "Creating Python virtual environment..." "Info"
     
@@ -79,7 +105,7 @@ function Create-VirtualEnvironment {
     }
     
     try {
-        python -m venv $VenvPath
+        & $PythonExe -m venv $VenvPath
         Write-Status "Virtual environment created successfully" "Success"
         return $true
     }
@@ -89,17 +115,14 @@ function Create-VirtualEnvironment {
     }
 }
 
-# Activate virtual environment and install dependencies
+# Install dependencies
 function Install-Dependencies {
-    param(
-        [string]$VenvPath,
-        [string]$RequirementsFile
-    )
+    param([string]$VenvPath, [string]$RequirementsFile)
     
     Write-Status "Installing dependencies..." "Info"
     
-    # Source the activation script
     $activateScript = Join-Path $VenvPath "Scripts\Activate.ps1"
+    $pipExe = Join-Path $VenvPath "Scripts\pip.exe"
     
     if (-not (Test-Path $activateScript)) {
         Write-Status "Activation script not found at $activateScript" "Error"
@@ -110,11 +133,32 @@ function Install-Dependencies {
         & $activateScript
         
         Write-Status "Upgrading pip..." "Info"
-        python -m pip install --upgrade pip
+        $activity = "Upgrading pip"
+        & $pipExe install --upgrade pip 2>&1 | ForEach-Object {
+            if ($_ -match "Successfully installed|Requirement already satisfied") {
+                Write-Progress -Activity $activity -Status "Complete" -PercentComplete 100
+                Write-Status "Pip upgraded successfully" "Success"
+            }
+        }
         
         Write-Status "Installing requirements from $RequirementsFile..." "Info"
-        pip install -r $RequirementsFile
+        $activity = "Installing Python packages"
+        $packageCount = 0
+        $totalPackages = @(Get-Content $RequirementsFile | Where-Object {$_ -notmatch "^#" -and $_ -notmatch "^\s*$"}).Count
         
+        & $pipExe install -r $RequirementsFile 2>&1 | ForEach-Object {
+            if ($_ -match "Successfully installed") {
+                $packageCount++
+                $percent = [math]::Min(($packageCount / $totalPackages * 100), 99)
+                Write-Progress -Activity $activity -Status "$packageCount / $totalPackages packages" -PercentComplete $percent
+            } elseif ($_ -match "Requirement already satisfied") {
+                $packageCount++
+                $percent = [math]::Min(($packageCount / $totalPackages * 100), 99)
+                Write-Progress -Activity $activity -Status "$packageCount / $totalPackages packages (cached)" -PercentComplete $percent
+            }
+        }
+        
+        Write-Progress -Activity $activity -Completed
         Write-Status "Dependencies installed successfully" "Success"
         return $true
     }
@@ -130,26 +174,24 @@ function Initialize-Database {
     
     Write-Status "Initializing database..." "Info"
     
+    $pythonExe = Join-Path $VenvPath "Scripts\python.exe"
+    
     try {
-        & (Join-Path $VenvPath "Scripts\Activate.ps1")
-        
         Write-Status "Running migrations..." "Info"
-        python manage.py migrate
+        & $pythonExe manage.py migrate --run-syncdb
         
-        Write-Status "Creating default groups and permissions..." "Info"
+        Write-Status "Creating default days..." "Info"
         $initScript = @'
-from django.contrib.auth.models import Group, Permission
 from data.models import Day
 
-# Create default days if not exist
 days_data = [
-    {'name_thai': 'จันทร์', 'name_eng': 'Monday'},
-    {'name_thai': 'อังคาร', 'name_eng': 'Tuesday'},
-    {'name_thai': 'พุธ', 'name_eng': 'Wednesday'},
-    {'name_thai': 'พฤหัสบดี', 'name_eng': 'Thursday'},
-    {'name_thai': 'ศุกร์', 'name_eng': 'Friday'},
-    {'name_thai': 'เสาร์', 'name_eng': 'Saturday'},
-    {'name_thai': 'อาทิตย์', 'name_eng': 'Sunday'},
+    {"name": "จันทร์", "name_eng": "Monday"},
+    {"name": "อังคาร", "name_eng": "Tuesday"},
+    {"name": "พุธ", "name_eng": "Wednesday"},
+    {"name": "พฤหัสบดี", "name_eng": "Thursday"},
+    {"name": "ศุกร์", "name_eng": "Friday"},
+    {"name": "เสาร์", "name_eng": "Saturday"},
+    {"name": "อาทิตย์", "name_eng": "Sunday"},
 ]
 
 for day_data in days_data:
@@ -157,46 +199,14 @@ for day_data in days_data:
 
 print("Database initialized successfully")
 '@
-
-        $initScript | python manage.py shell
+        
+        $initScript | & $pythonExe manage.py shell
         
         Write-Status "Database initialized successfully" "Success"
         return $true
     }
     catch {
         Write-Status "Failed to initialize database: $_" "Error"
-        return $false
-    }
-}
-
-# Create Windows Service
-function Install-WindowsService {
-    param([string]$InstallDir)
-    
-    Write-Status "Installing Windows Service..." "Info"
-    
-    if (-not (Test-Administrator)) {
-        Write-Status "Windows Service installation requires Administrator privileges" "Error"
-        return $false
-    }
-    
-    try {
-        $pythonExe = Join-Path $InstallDir ".venv\Scripts\python.exe"
-        $serviceScript = Join-Path $InstallDir "scripts\install_windows_service.py"
-        
-        if (-not (Test-Path $serviceScript)) {
-            Write-Status "Service installation script not found at $serviceScript" "Warning"
-            return $false
-        }
-        
-        & $pythonExe $serviceScript
-        
-        Write-Status "Windows Service installed successfully" "Success"
-        Write-Status "Start the service with: Start-Service -Name ThaiSchoolAlarmWeb" "Info"
-        return $true
-    }
-    catch {
-        Write-Status "Failed to install Windows Service: $_" "Error"
         return $false
     }
 }
@@ -209,12 +219,54 @@ function Main {
     # Check administrator privileges
     Test-Administrator
     
-    # Check Python installation
-    if (-not $SkipPythonCheck) {
-        if (-not (Test-PythonInstallation $PythonVersion)) {
-            Write-Status "Please install Python $PythonVersion or higher from https://www.python.org/" "Error"
-            exit 1
+    # Find Python
+    $pythonExe = Find-Python
+    if (-not $pythonExe) {
+        Write-Status "Python not found in common locations" "Error"
+        Write-Status "Searching PATH environment variable..." "Info"
+        
+        # Try to find Python in PATH directories
+        $pathDirs = $env:PATH -split ';'
+        foreach ($dir in $pathDirs) {
+            $py = Join-Path $dir "python.exe"
+            if (Test-Path $py) {
+                # Test if it's not the Windows Store stub
+                try {
+                    $version = & $py --version 2>&1
+                    if ($version -notmatch "not found" -and $version -notmatch "Microsoft Store") {
+                        Write-Status "Found Python in PATH: $py" "Success"
+                        $pythonExe = $py
+                        break
+                    }
+                } catch {
+                    # Skip this path, it's not a real Python
+                }
+            }
         }
+    }
+    
+    if (-not $pythonExe) {
+        Write-Status "Python not found anywhere!" "Error"
+        Write-Status "Please install Python 3.10+ from: https://www.python.org/" "Error"
+        Write-Status "Make sure to check 'Add Python to PATH' during installation" "Error"
+        exit 1
+    }
+    
+    # Verify Python version
+    Write-Status "Verifying Python installation..." "Info"
+    try {
+        $versionOutput = & $pythonExe --version 2>&1
+        
+        # Check if output looks valid
+        if ($versionOutput -match "^Python") {
+            Write-Status "Python version: $versionOutput" "Success"
+        } else {
+            Write-Status "Warning: Could not verify Python version, but found executable" "Warning"
+        }
+    }
+    catch {
+        Write-Status "Error: Python executable not working: $_" "Error"
+        exit 1
     }
     
     # Create installation directory
@@ -226,12 +278,40 @@ function Main {
     # Copy project files (if running from source directory)
     if ($scriptPath -ne $InstallPath) {
         Write-Status "Copying project files to $InstallPath..." "Info"
-        Copy-Item -Path "$scriptPath\*" -Destination $InstallPath -Recurse -Force
+        
+        # Get all files to calculate progress
+        $filesToCopy = Get-ChildItem -Path $scriptPath -Recurse -Force | Where-Object {-not $_.PSIsContainer}
+        $totalFiles = $filesToCopy.Count
+        $activity = "Copying project files"
+        $processed = 0
+        
+        if ($totalFiles -eq 0) {
+            Copy-Item -Path "$scriptPath\*" -Destination $InstallPath -Recurse -Force
+        } else {
+            $filesToCopy | ForEach-Object {
+                $processed++
+                $relativePath = $_.FullName.Substring($scriptPath.Length)
+                $percent = ($processed / $totalFiles * 100)
+                Write-Progress -Activity $activity -Status "$relativePath" -PercentComplete $percent
+                
+                $destFile = Join-Path $InstallPath $relativePath
+                $destDir = Split-Path -Parent $destFile
+                
+                if (-not (Test-Path $destDir)) {
+                    New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+                }
+                
+                Copy-Item -Path $_.FullName -Destination $destFile -Force
+            }
+        }
+        
+        Write-Progress -Activity $activity -Completed
+        Write-Status "Project files copied successfully ($totalFiles files)" "Success"
     }
     
     # Create virtual environment
     $venvPath = Join-Path $InstallPath ".venv"
-    if (-not (Create-VirtualEnvironment $venvPath)) {
+    if (-not (Create-VirtualEnvironment $pythonExe $venvPath)) {
         exit 1
     }
     
@@ -249,11 +329,6 @@ function Main {
     }
     Pop-Location
     
-    # Create Windows Service (optional)
-    if ($CreateService) {
-        Install-WindowsService $InstallPath
-    }
-    
     Write-Host ""
     Write-Status "Deployment completed successfully!" "Success"
     Write-Host ""
@@ -266,11 +341,6 @@ function Main {
     Write-Host "2. Access the web interface:"
     Write-Host "   http://localhost:8000"
     Write-Host ""
-    if ($CreateService) {
-        Write-Host "3. Start the service:"
-        Write-Host "   Start-Service -Name ThaiSchoolAlarmWeb"
-        Write-Host ""
-    }
     Write-Host "Note: WiFi and AP mode features are not supported on Windows." -ForegroundColor Yellow
     Write-Host "Core scheduling and audio playback features will work normally." -ForegroundColor Yellow
 }
