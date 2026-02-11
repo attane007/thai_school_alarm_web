@@ -322,18 +322,8 @@ function Main {
             # Use Robocopy which is faster and better for large directory structures
             & robocopy $scriptPath $InstallPath /E /I /Y /XF "*.pyc" /XD "__pycache__" ".venv" ".git" "logs" "db.sqlite3" | Out-Null
             
-            # Copy .env file separately (it's in .gitignore so robocopy excludes it)
-            $envFile = Join-Path $scriptPath ".env"
-            if (Test-Path $envFile) {
-                Write-Status "Copying .env file..." "Info"
-                Copy-Item -Path $envFile -Destination (Join-Path $InstallPath ".env") -Force -ErrorAction SilentlyContinue
-                Write-Status ".env file copied" "Success"
-            } else {
-                Write-Status "Warning: .env file not found in source directory" "Warning"
-            }
-            
             Write-Progress -Activity "Copying files" -Completed
-            Write-Status "Project files copied successfully" "Success"
+            Write-Status "Project files copied successfully (setup page will be shown on first access)" "Success"
         }
         catch {
             Write-Status "Note: Robocopy not available, using standard copy..." "Warning"
@@ -381,11 +371,15 @@ function Main {
     Write-Host "=== Next Steps ===" -ForegroundColor Cyan
     Write-Host "1. Start the application:"
     Write-Host "   cd $InstallPath"
-    Write-Host "   .\.venv\Scripts\Activate.ps1"
-    Write-Host "   python manage.py runserver 0.0.0.0:8000"
+    Write-Host "   .\.venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000"
     Write-Host ""
-    Write-Host "2. Access the web interface:"
+    Write-Host "2. Open in browser:"
     Write-Host "   http://localhost:8000"
+    Write-Host ""
+    Write-Host "3. Complete setup:"
+    Write-Host "   - You will be redirected to the setup page on first access"
+    Write-Host "   - Enter your domain name (e.g., http://localhost:8000)"
+    Write-Host "   - The .env configuration will be generated automatically"
     Write-Host ""
     Write-Host "Note: WiFi and AP mode features are not supported on Windows." -ForegroundColor Yellow
     Write-Host "Core scheduling and audio playback features will work normally." -ForegroundColor Yellow
